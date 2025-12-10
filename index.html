@@ -53,7 +53,7 @@
       background: #3b82f6;
       color: white;
       white-space: nowrap;
-      transition: transform 0.1s ease, box-shadow 0.1s ease, background 0.2s ease, opacity 0.2s ease;
+      transition: transform 0.1s.ease, box-shadow 0.1s ease, background 0.2s ease, opacity 0.2s ease;
     }
 
     button.secondary {
@@ -155,7 +155,7 @@
     }
 
     .slots.shake {
-      animation: slotsShake 0.2s ease;
+      animation: slotsShake 0.2s.ease;
     }
 
     @keyframes slotsShake {
@@ -167,7 +167,7 @@
     }
 
     .slots.slots-ready {
-      animation: slotsReady 0.25s ease-out;
+      animation: slotsReady 0.25s.ease-out;
     }
 
     @keyframes slotsReady {
@@ -190,7 +190,7 @@
       color: #e5e7eb;
       user-select: none;
       touch-action: manipulation;
-      transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease, transform 0.1s ease;
+      transition: border-color 0.15s ease, box-shadow 0.15s.ease, background 0.15s ease, transform 0.1s ease;
     }
 
     .slot.empty {
@@ -209,7 +209,7 @@
     }
 
     .slot-pop {
-      animation: slotPop 0.18s ease-out;
+      animation: slotPop 0.18s.ease-out;
     }
 
     @keyframes slotPop {
@@ -316,7 +316,7 @@
     .celebration-emoji {
       font-size: 3.5rem;
       margin-bottom: 8px;
-      animation: bounce 0.8s ease-out infinite;
+      animation: bounce 0.8s.ease-out infinite;
     }
 
     .celebration-text {
@@ -342,7 +342,7 @@
       position: absolute;
       border-radius: 2px;
       opacity: 0.9;
-      animation: confettiFall 1.8s linear forwards;
+      animation: confettiFall 1.8s.linear forwards;
       z-index: 1;
     }
 
@@ -357,7 +357,7 @@
       width: 0;
       height: 0;
       opacity: 0.8;
-      animation: waveOut 0.9s ease-out forwards;
+      animation: waveOut 0.9s.ease-out forwards;
       z-index: 0;
     }
 
@@ -481,6 +481,7 @@
     <div class="small">
       数字は下のチップをタップするか、<br>
       長押ししてドラッグしてスロットに置いてね。<br>
+      スロットも長押しドラッグで別のスロットに動かせるよ。<br>
       スロットをタップするとその桁が消えるよ。
     </div>
 
@@ -519,7 +520,7 @@
       <div class="celebration-note">画面は自動で閉じます</div>
     </div>
   </div>
-  <!-- ▲ お祝いオーバーレイここまで ▲ -->
+  <!-- ▲ 正解オーバーレイここまで ▲ -->
 
   <script>
     const DIGITS = 3;
@@ -564,6 +565,8 @@
     let dragGhost = null;
     let longPressTimer = null;
     let isTouchDragging = false;
+    let touchSourceType = null;       // "digit" or "slot"
+    let touchSourceSlotIndex = null;  // slot 元の場合の index
 
     const isTouchDevice =
       "ontouchstart" in window || navigator.maxTouchPoints > 0;
@@ -617,7 +620,6 @@
       const slot = slots[index];
       if (!slot) return;
       slot.classList.remove("slot-pop");
-      // 少し遅らせて再適用すると連続でも効く
       requestAnimationFrame(() => {
         slot.classList.add("slot-pop");
         setTimeout(() => slot.classList.remove("slot-pop"), 200);
@@ -663,7 +665,6 @@
 
       guessBtn.disabled = !nowEnabled;
 
-      // 有効になった瞬間のバウンド & スロットのライトアップ
       if (nowEnabled && !lastGuessEnabled) {
         guessBtn.classList.add("btn-pop");
         slotsContainer.classList.add("slots-ready");
@@ -706,6 +707,30 @@
       messageEl.textContent = "";
       updateSlotsView();
       popSlot(idx);
+    }
+
+    // slot 同士の移動／入れ替え
+    function moveOrSwapBetweenSlots(fromIndex, toIndex) {
+      if (fromIndex === toIndex) return;
+      const fromVal = slotValues[fromIndex];
+      const toVal = slotValues[toIndex];
+      if (fromVal == null) return;
+
+      // 先頭0禁止チェック
+      if (toIndex === 0 && fromVal === "0") {
+        messageEl.textContent = "先頭は0以外にしてね。";
+        shakeSlots();
+        return;
+      }
+
+      // 入れ替え（toValがnullなら単なる移動）
+      slotValues[fromIndex] = toVal;
+      slotValues[toIndex] = fromVal;
+
+      messageEl.textContent = "";
+      updateSlotsView();
+      popSlot(fromIndex);
+      popSlot(toIndex);
     }
 
     // ===== お祝い演出 =====
@@ -938,24 +963,25 @@
     digitButtons.forEach(btn => {
       const d = btn.dataset.digit;
 
-      // PC用クリック入力
       if (!isTouchDevice) {
+        // PC: クリック入力
         btn.addEventListener("click", () => {
           handleDigitTapByDigit(d);
         });
 
         // PC向けドラッグ開始（HTML5 DnD）
         btn.addEventListener("dragstart", (e) => {
-          e.dataTransfer.setData("text/plain", d);
+          e.dataTransfer.setData("text/plain", "digit:" + d);
         });
       }
 
-      // スマホ向け：長押しドラッグ & タップ
       if (isTouchDevice) {
         btn.addEventListener("touchstart", (e) => {
           if (!gameActive) return;
           const touch = e.touches[0];
           touchDraggingDigit = d;
+          touchSourceType = "digit";
+          touchSourceSlotIndex = null;
           isTouchDragging = false;
 
           longPressTimer = setTimeout(() => {
@@ -970,7 +996,7 @@
       }
     });
 
-    // スロット：タップで消す & PC向け drop
+    // スロット：タップで消す & PC向け drop & スロット自身のドラッグ
     slots.forEach((slot, index) => {
       slot.addEventListener("click", () => {
         if (!gameActive) return;
@@ -982,6 +1008,19 @@
       });
 
       if (!isTouchDevice) {
+        // スロットもドラッグ可能にする
+        slot.draggable = true;
+
+        slot.addEventListener("dragstart", (e) => {
+          if (!gameActive) { e.preventDefault(); return; }
+          const val = slotValues[index];
+          if (val == null) {
+            e.preventDefault();
+            return;
+          }
+          e.dataTransfer.setData("text/plain", "slot:" + index + ":" + val);
+        });
+
         slot.addEventListener("dragover", (e) => {
           if (!gameActive) return;
           e.preventDefault();
@@ -996,31 +1035,80 @@
           if (!gameActive) return;
           e.preventDefault();
           slot.classList.remove("highlight");
-          const digit = e.dataTransfer.getData("text/plain");
-          if (!digit) return;
 
-          messageEl.textContent = "";
+          const payload = e.dataTransfer.getData("text/plain");
+          if (!payload) return;
 
-          const existingIndex = slotValues.indexOf(digit);
-          if (existingIndex !== -1 && existingIndex !== index) {
-            slotValues[existingIndex] = null;
+          let srcType = "digit";
+          let digit = null;
+          let fromIndex = null;
+
+          if (payload.startsWith("slot:")) {
+            const parts = payload.split(":");
+            fromIndex = parseInt(parts[1], 10);
+            digit = parts[2];
+            srcType = "slot";
+          } else if (payload.startsWith("digit:")) {
+            digit = payload.slice("digit:".length);
+          } else {
+            digit = payload; // 互換用フォールバック
           }
 
-          if (!canPlaceDigitAt(index, digit)) {
+          if (!digit) return;
+
+          const targetIndex = index;
+          messageEl.textContent = "";
+
+          if (srcType === "slot" && fromIndex != null) {
+            moveOrSwapBetweenSlots(fromIndex, targetIndex);
             return;
           }
 
-          slotValues[index] = digit;
+          // digit パッドからのドロップ
+          const existingIndex = slotValues.indexOf(digit);
+          if (existingIndex !== -1 && existingIndex !== targetIndex) {
+            slotValues[existingIndex] = null;
+          }
+
+          if (!canPlaceDigitAt(targetIndex, digit)) {
+            return;
+          }
+
+          slotValues[targetIndex] = digit;
           updateSlotsView();
-          popSlot(index);
+          popSlot(targetIndex);
         });
+      }
+
+      // スマホ向け：スロットからの長押しドラッグ
+      if (isTouchDevice) {
+        slot.addEventListener("touchstart", (e) => {
+          if (!gameActive) return;
+          const val = slotValues[index];
+          if (val == null) return; // 空スロットはドラッグしない
+
+          const touch = e.touches[0];
+          touchDraggingDigit = val;
+          touchSourceType = "slot";
+          touchSourceSlotIndex = index;
+          isTouchDragging = false;
+
+          longPressTimer = setTimeout(() => {
+            isTouchDragging = true;
+            dragGhost = document.createElement("div");
+            dragGhost.className = "drag-ghost";
+            dragGhost.textContent = touchDraggingDigit;
+            document.body.appendChild(dragGhost);
+            moveGhost(touch.clientX, touch.clientY);
+          }, 200);
+        }, { passive: true });
       }
     });
 
     // 自作ドラッグ：指を動かしている間
     if (isTouchDevice) {
       document.addEventListener("touchmove", (e) => {
-        if (!touchDraggingDigit) return;
+        if (!touchSourceType) return;
         const touch = e.touches[0];
 
         if (isTouchDragging && dragGhost) {
@@ -1032,12 +1120,17 @@
       }, { passive: false });
 
       function finishTouchDrag(ev) {
-        if (!touchDraggingDigit) return;
+        if (!touchSourceType) return;
 
         clearTimeout(longPressTimer);
 
         const digit = touchDraggingDigit;
+        const sourceType = touchSourceType;
+        const fromIndex = touchSourceSlotIndex;
+
         touchDraggingDigit = null;
+        touchSourceType = null;
+        touchSourceSlotIndex = null;
 
         if (isTouchDragging) {
           const touch = ev.changedTouches[0];
@@ -1045,7 +1138,14 @@
           const slot = getSlotFromElement(el);
 
           if (gameActive && slot && digit != null) {
-            placeDigitIntoSlotElement(slot, digit);
+            if (sourceType === "digit") {
+              placeDigitIntoSlotElement(slot, digit);
+            } else if (sourceType === "slot" && fromIndex != null) {
+              const targetIndex = slots.indexOf(slot);
+              if (targetIndex !== -1) {
+                moveOrSwapBetweenSlots(fromIndex, targetIndex);
+              }
+            }
           }
 
           clearSlotHighlight();
@@ -1056,7 +1156,16 @@
           isTouchDragging = false;
           ev.preventDefault();
         } else {
-          handleDigitTapByDigit(digit);
+          // 長押しにならなかった → タップ扱い
+          if (sourceType === "digit") {
+            handleDigitTapByDigit(digit);
+          } else if (sourceType === "slot" && fromIndex != null && gameActive) {
+            if (slotValues[fromIndex] !== null) {
+              slotValues[fromIndex] = null;
+              messageEl.textContent = "";
+              updateSlotsView();
+            }
+          }
         }
       }
 
@@ -1064,6 +1173,8 @@
       document.addEventListener("touchcancel", (e) => {
         clearTimeout(longPressTimer);
         touchDraggingDigit = null;
+        touchSourceType = null;
+        touchSourceSlotIndex = null;
         isTouchDragging = false;
         clearSlotHighlight();
         if (dragGhost) {
