@@ -50,8 +50,8 @@
       box-sizing: border-box;
     }
 
-    input::-webkit-inner-spin-button,
-    input::-webkit-outer-spin-button {
+    input::-webkit-inner-spin_button,
+    input::-webkit-outer-spin_button {
       -webkit-appearance: none;
       margin: 0;
     }
@@ -86,8 +86,6 @@
 
     .log {
       margin-top: 12px;
-      max-height: 300px;
-      overflow-y: auto;
       border-top: 1px solid #374151;
       padding-top: 8px;
       font-size: 0.9rem;
@@ -115,7 +113,7 @@
       color: #a5b4fc;
     }
 
-    /* ▼ ここから記録用の見た目 ▼ */
+    /* ▼ 記録用の見た目 ▼ */
     .stats {
       margin-top: 16px;
       padding: 10px 12px;
@@ -186,7 +184,10 @@
       ヒット：桁も数字も一致 / ブロー：数字だけ一致（場所違い）
     </div>
 
-    <!-- ▼ 記録表示エリア ▼ -->
+    <!-- ログを先に表示 -->
+    <div class="log" id="log"></div>
+
+    <!-- ▼ 記録表示エリア（ページ最下部） ▼ -->
     <div class="stats">
       <div class="stats-title">📊 記録（この端末・このブラウザ専用）</div>
       <div class="stats-row">
@@ -207,8 +208,6 @@
       </div>
     </div>
     <!-- ▲ 記録表示エリアここまで ▲ -->
-
-    <div class="log" id="log"></div>
   </div>
 
   <script>
@@ -290,7 +289,6 @@
       const firstIndex = Math.floor(Math.random() * 9) + 1; // 1〜9
       const first = digits[firstIndex];
       digits.splice(firstIndex, 1);
-      // 残り3つ
       const rest = [];
       for (let i = 0; i < DIGITS - 1; i++) {
         const idx = Math.floor(Math.random() * digits.length);
@@ -359,7 +357,6 @@
         return;
       }
 
-      // ゼロ埋めされる可能性があるので文字列のまま扱う
       if (!/^\d+$/.test(raw)) {
         messageEl.textContent = "数字だけを入力してね。";
         return;
@@ -404,6 +401,7 @@
 
         endGame();
       } else {
+        // ← ここがバグってた行。これが正しい版。
         statusText.textContent = `ヒット: ${hit}, ブロー: ${blow}（${tries}回目）`;
         guessInput.value = "";
         guessInput.focus();
@@ -427,7 +425,6 @@
       statusText.textContent = `ギブアップ！答えは ${answer} でした。`;
       addLog(`<strong>ギブアップ</strong> ▶ 答え: <strong>${answer}</strong>`);
       endGame();
-      // ギブアップ時は戦績はそのまま（プレイ回数だけカウント済み）
       saveStats();
       updateStatsView();
     });
