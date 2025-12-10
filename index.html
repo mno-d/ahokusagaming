@@ -11,6 +11,7 @@
       padding: 16px;
       background: #111;
       color: #f5f5f5;
+      transition: filter 0.2s ease, background 0.2s ease;
     }
 
     .container {
@@ -20,6 +21,7 @@
       background: #1e1e1e;
       border-radius: 12px;
       box-shadow: 0 0 16px rgba(0,0,0,0.4);
+      transition: transform 0.2s ease;
     }
 
     h1 {
@@ -51,6 +53,7 @@
       background: #3b82f6;
       color: white;
       white-space: nowrap;
+      transition: transform 0.1s ease, box-shadow 0.1s ease, background 0.2s ease, opacity 0.2s ease;
     }
 
     button.secondary {
@@ -60,6 +63,17 @@
     button:disabled {
       opacity: 0.5;
       cursor: default;
+      box-shadow: none;
+    }
+
+    .btn-pop {
+      animation: btnPop 0.18s ease-out;
+    }
+
+    @keyframes btnPop {
+      0%   { transform: scale(1); }
+      50%  { transform: scale(1.07); }
+      100% { transform: scale(1); }
     }
 
     .message {
@@ -67,6 +81,7 @@
       font-size: 0.9rem;
       margin-bottom: 8px;
       color: #f97316;
+      transition: opacity 0.15s ease;
     }
 
     .log {
@@ -81,10 +96,32 @@
       border-radius: 6px;
       margin-bottom: 4px;
       background: #111827;
+      border-left: 3px solid transparent;
+      animation: logDrop 0.22s ease-out;
+      transform-origin: top;
     }
 
     .log-entry strong {
       color: #e5e7eb;
+    }
+
+    /* ヒット数に応じた色分け */
+    .log-entry.hit-0 {
+      background: #020617;
+      border-left-color: #4b5563;
+    }
+    .log-entry.hit-1 {
+      background: #0f172a;
+      border-left-color: #3b82f6;
+    }
+    .log-entry.hit-2 {
+      background: #1f2937;
+      border-left-color: #eab308;
+    }
+
+    @keyframes logDrop {
+      0%   { opacity: 0; transform: translateY(-6px) scale(0.98); }
+      100% { opacity: 1; transform: translateY(0) scale(1); }
     }
 
     .small {
@@ -96,12 +133,47 @@
       margin-top: 8px;
       font-size: 0.9rem;
       color: #a5b4fc;
+      transition: transform 0.15s ease, color 0.2s ease;
+    }
+
+    .status-sad {
+      animation: statusShake 0.4s ease;
+      color: #f97316;
+    }
+
+    @keyframes statusShake {
+      0%,100% { transform: translateX(0); }
+      25% { transform: translateX(-3px); }
+      75% { transform: translateX(3px); }
     }
 
     /* ▼ スロット＆数字チップ ▼ */
     .slots {
       display: flex;
       gap: 8px;
+      transition: transform 0.15s ease;
+    }
+
+    .slots.shake {
+      animation: slotsShake 0.2s ease;
+    }
+
+    @keyframes slotsShake {
+      0% { transform: translateX(0); }
+      25% { transform: translateX(-4px); }
+      50% { transform: translateX(4px); }
+      75% { transform: translateX(-2px); }
+      100% { transform: translateX(0); }
+    }
+
+    .slots.slots-ready {
+      animation: slotsReady 0.25s ease-out;
+    }
+
+    @keyframes slotsReady {
+      0%   { transform: scale(1); }
+      50%  { transform: scale(1.03); }
+      100% { transform: scale(1); }
     }
 
     .slot {
@@ -118,6 +190,7 @@
       color: #e5e7eb;
       user-select: none;
       touch-action: manipulation;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease, transform 0.1s ease;
     }
 
     .slot.empty {
@@ -127,7 +200,22 @@
 
     .slot.highlight {
       border-color: #f97316;
-      box-shadow: 0 0 0 2px rgba(249,115,22,0.5);
+      animation: slotPulse 0.5s ease-out infinite;
+    }
+
+    @keyframes slotPulse {
+      0%   { box-shadow: 0 0 0 0 rgba(249,115,22,0.5); }
+      100% { box-shadow: 0 0 0 8px rgba(249,115,22,0); }
+    }
+
+    .slot-pop {
+      animation: slotPop 0.18s ease-out;
+    }
+
+    @keyframes slotPop {
+      0%   { transform: scale(0.9); }
+      60%  { transform: scale(1.08); }
+      100% { transform: scale(1); }
     }
 
     .digit-pad {
@@ -149,6 +237,8 @@
       cursor: pointer;
       user-select: none;
       touch-action: manipulation;
+      position: relative;
+      overflow: hidden;
     }
 
     .digit.used {
@@ -158,6 +248,12 @@
     .digit:active {
       transform: translateY(1px) scale(0.98);
     }
+
+    .digit.flash {
+      box-shadow: 0 0 10px rgba(255,255,255,0.7);
+      transform: scale(1.05);
+    }
+
     /* ▲ スロット＆数字チップここまで ▲ */
 
     /* ▼ 記録用の見た目 ▼ */
@@ -203,6 +299,7 @@
       justify-content: center;
       z-index: 999;
       animation: fadeIn 0.25s ease-out;
+      overflow: hidden;
     }
 
     .celebration.show {
@@ -212,6 +309,8 @@
     .celebration-content {
       text-align: center;
       animation: popIn 0.4s ease-out;
+      position: relative;
+      z-index: 2;
     }
 
     .celebration-emoji {
@@ -241,11 +340,38 @@
 
     .confetti {
       position: absolute;
-      width: 8px;
-      height: 14px;
       border-radius: 2px;
       opacity: 0.9;
       animation: confettiFall 1.8s linear forwards;
+      z-index: 1;
+    }
+
+    /* 正解時の波紋 */
+    .wave {
+      position: absolute;
+      border-radius: 999px;
+      border: 2px solid rgba(255,255,255,0.6);
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      width: 0;
+      height: 0;
+      opacity: 0.8;
+      animation: waveOut 0.9s ease-out forwards;
+      z-index: 0;
+    }
+
+    @keyframes waveOut {
+      0% {
+        width: 0;
+        height: 0;
+        opacity: 0.8;
+      }
+      100% {
+        width: 260px;
+        height: 260px;
+        opacity: 0;
+      }
     }
 
     @keyframes fadeIn {
@@ -291,8 +417,20 @@
       z-index: 9999;
       box-shadow: 0 4px 10px rgba(0,0,0,0.5);
       transform: translate(-50%, -50%);
+      animation: ghostPop 0.12s ease-out;
+    }
+
+    @keyframes ghostPop {
+      0%   { transform: translate(-50%, -50%) scale(0.8); }
+      100% { transform: translate(-50%, -50%) scale(1); }
     }
     /* ▲ 自作ドラッグ用ゴーストここまで ▲ */
+
+    /* ▼ ギブアップ時のため息演出 ▼ */
+    body.giveup-flash {
+      filter: brightness(0.7);
+      transition: filter 0.3s ease;
+    }
   </style>
 </head>
 <body>
@@ -306,7 +444,7 @@
     </p>
 
     <div class="status" id="statusText">
-      ゲーム開始ボタンを押してね。
+      数字を選んでみてね。
     </div>
 
     <div class="message" id="message"></div>
@@ -396,10 +534,10 @@
     // === 戦績用データ ===
     const STORAGE_KEY_STATS = "hb_stats_v1";
     let stats = {
-      totalGames: 0,        // プレイ回数
-      clears: 0,            // クリア回数
-      bestTries: null,      // ベスト手数（小さいほど良い）
-      totalTriesOnClear: 0  // クリアしたときの手数合計（平均用）
+      totalGames: 0,
+      clears: 0,
+      bestTries: null,
+      totalTriesOnClear: 0
     };
 
     const guessBtn = document.getElementById("guessBtn");
@@ -410,20 +548,18 @@
     const statusText = document.getElementById("statusText");
 
     const slots = Array.from(document.querySelectorAll(".slot"));
+    const slotsContainer = document.querySelector(".slots");
     const digitButtons = Array.from(document.querySelectorAll(".digit"));
 
-    // 戦績表示用要素
     const statTotal = document.getElementById("statTotal");
     const statClears = document.getElementById("statClears");
     const statBest = document.getElementById("statBest");
     const statAvg = document.getElementById("statAvg");
 
-    // お祝い関連
     const celebrationEl = document.getElementById("celebration");
     const celebrationTextEl = document.getElementById("celebrationText");
     const celebrationSubEl = document.getElementById("celebrationSub");
 
-    // 自作ドラッグ用
     let touchDraggingDigit = null;
     let dragGhost = null;
     let longPressTimer = null;
@@ -431,6 +567,8 @@
 
     const isTouchDevice =
       "ontouchstart" in window || navigator.maxTouchPoints > 0;
+
+    let lastGuessEnabled = false;
 
     // ===== 戦績の読み込み・保存・表示 =====
     function loadStats() {
@@ -460,19 +598,36 @@
     function updateStatsView() {
       statTotal.textContent = stats.totalGames;
       statClears.textContent = stats.clears;
-
-      if (stats.bestTries == null) {
-        statBest.textContent = "-";
-      } else {
-        statBest.textContent = stats.bestTries + " 手";
-      }
-
+      statBest.textContent = stats.bestTries == null ? "-" : stats.bestTries + " 手";
       if (stats.clears === 0) {
         statAvg.textContent = "-";
       } else {
         const avg = stats.totalTriesOnClear / stats.clears;
         statAvg.textContent = avg.toFixed(1) + " 手";
       }
+    }
+
+    // ===== 演出ヘルパー =====
+    function shakeSlots() {
+      slotsContainer.classList.add("shake");
+      setTimeout(() => slotsContainer.classList.remove("shake"), 220);
+    }
+
+    function popSlot(index) {
+      const slot = slots[index];
+      if (!slot) return;
+      slot.classList.remove("slot-pop");
+      // 少し遅らせて再適用すると連続でも効く
+      requestAnimationFrame(() => {
+        slot.classList.add("slot-pop");
+        setTimeout(() => slot.classList.remove("slot-pop"), 200);
+      });
+    }
+
+    function flashDigitElement(btn) {
+      if (!btn) return;
+      btn.classList.add("flash");
+      setTimeout(() => btn.classList.remove("flash"), 130);
     }
 
     // ===== スロット & 数字チップ表示更新 =====
@@ -504,7 +659,21 @@
 
     function updateGuessBtnState() {
       const filled = slotValues.every(v => v !== null);
-      guessBtn.disabled = !gameActive || !filled;
+      const nowEnabled = gameActive && filled;
+
+      guessBtn.disabled = !nowEnabled;
+
+      // 有効になった瞬間のバウンド & スロットのライトアップ
+      if (nowEnabled && !lastGuessEnabled) {
+        guessBtn.classList.add("btn-pop");
+        slotsContainer.classList.add("slots-ready");
+        setTimeout(() => {
+          guessBtn.classList.remove("btn-pop");
+          slotsContainer.classList.remove("slots-ready");
+        }, 260);
+      }
+
+      lastGuessEnabled = nowEnabled;
     }
 
     function isDigitUsed(d) {
@@ -514,10 +683,12 @@
     function canPlaceDigitAt(index, digit) {
       if (index === 0 && digit === "0") {
         messageEl.textContent = "先頭は0以外にしてね。";
+        shakeSlots();
         return false;
       }
       if (isDigitUsed(digit)) {
         messageEl.textContent = "同じ数字は使えないよ。（全部バラバラ）";
+        shakeSlots();
         return false;
       }
       return true;
@@ -527,12 +698,14 @@
       const idx = slotValues.findIndex(v => v === null);
       if (idx === -1) {
         messageEl.textContent = `もう${DIGITS}桁入っているよ。消したい桁をタップしてね。`;
+        shakeSlots();
         return;
       }
       if (!canPlaceDigitAt(idx, digit)) return;
       slotValues[idx] = digit;
       messageEl.textContent = "";
       updateSlotsView();
+      popSlot(idx);
     }
 
     // ===== お祝い演出 =====
@@ -545,22 +718,44 @@
       const old = celebrationEl.querySelectorAll(".confetti");
       old.forEach(el => el.remove());
 
-      const count = 30;
+      const count = 40;
       for (let i = 0; i < count; i++) {
         const piece = document.createElement("div");
         piece.className = "confetti";
+
+        const size = 6 + Math.random() * 10;
+        piece.style.width = size + "px";
+        piece.style.height = size * (1.2 + Math.random() * 0.8) + "px";
+
+        if (Math.random() < 0.3) {
+          piece.style.borderRadius = "999px";
+        }
+
         piece.style.left = Math.random() * 100 + "vw";
         piece.style.backgroundColor = randomColor();
         piece.style.animationDelay = (Math.random() * 0.6) + "s";
         piece.style.transform = `translateY(-20vh) rotate(${Math.random() * 360}deg)`;
+
         celebrationEl.appendChild(piece);
+      }
+    }
+
+    function createWaves() {
+      for (let i = 0; i < 3; i++) {
+        const wave = document.createElement("div");
+        wave.className = "wave";
+        wave.style.animationDelay = (i * 0.12) + "s";
+        celebrationEl.appendChild(wave);
+        setTimeout(() => wave.remove(), 1200);
       }
     }
 
     function showCelebration(tries) {
       celebrationTextEl.textContent = "正解！";
       celebrationSubEl.textContent = `${tries}回で当てたよ！すごい！`;
+
       createConfettiPieces();
+      createWaves();
       celebrationEl.classList.add("show");
 
       setTimeout(() => {
@@ -609,12 +804,13 @@
       tries = 0;
       gameActive = true;
       guessBtn.disabled = true;
+      lastGuessEnabled = false;
       giveupBtn.disabled = false;
       resetSlots();
       messageEl.textContent = "";
       logEl.innerHTML = "";
       statusText.textContent = "ゲーム開始！3桁の数字を当ててみてね。";
-      console.log("答え:", answer); // デバッグ用。不要なら削除OK
+      console.log("答え:", answer); // デバッグ用。公開時は消してOK
 
       stats.totalGames += 1;
       saveStats();
@@ -627,9 +823,12 @@
       giveupBtn.disabled = true;
     }
 
-    function addLog(text) {
+    function addLog(text, hit) {
       const div = document.createElement("div");
       div.className = "log-entry";
+      if (typeof hit === "number") {
+        div.classList.add(`hit-${hit}`);
+      }
       div.innerHTML = text;
       logEl.prepend(div);
     }
@@ -639,16 +838,18 @@
 
       if (slotValues.some(v => v === null)) {
         messageEl.textContent = `${DIGITS}桁すべて埋めてね。`;
+        shakeSlots();
         return;
       }
 
-      const guess = slotValues.join(""); // "123" みたいな文字列
+      const guess = slotValues.join("");
       messageEl.textContent = "";
 
       tries++;
       const { hit, blow } = calcHitAndBlow(answer, guess);
       addLog(
-        `<strong>${guess}</strong> ▶ ヒット: <strong>${hit}</strong>, ブロー: <strong>${blow}</strong>（${tries}回目）`
+        `<strong>${guess}</strong> ▶ ヒット: <strong>${hit}</strong>, ブロー: <strong>${blow}</strong>（${tries}回目）`,
+        hit
       );
 
       if (hit === DIGITS) {
@@ -701,7 +902,6 @@
       const index = slots.indexOf(slotEl);
       if (index === -1) return;
 
-      // 既にその数字が他のスロットにあれば外す
       const existingIndex = slotValues.indexOf(digit);
       if (existingIndex !== -1 && existingIndex !== index) {
         slotValues[existingIndex] = null;
@@ -711,13 +911,16 @@
 
       slotValues[index] = digit;
       updateSlotsView();
+      popSlot(index);
     }
 
     function handleDigitTapByDigit(digit) {
       if (!gameActive) {
-        messageEl.textContent = "まずはゲーム開始ボタンを押してね。";
+        messageEl.textContent = "リセットボタンで新しいゲームを始めてね。";
         return;
       }
+      const btn = digitButtons.find(b => b.dataset.digit === digit);
+      flashDigitElement(btn);
       messageEl.textContent = "";
 
       if (isDigitUsed(digit)) {
@@ -731,7 +934,7 @@
 
     // ===== イベントセットアップ =====
 
-    // 数字チップ：デスクトップ用クリック & dragstart / モバイル用タッチ
+    // 数字チップ
     digitButtons.forEach(btn => {
       const d = btn.dataset.digit;
 
@@ -740,10 +943,8 @@
         btn.addEventListener("click", () => {
           handleDigitTapByDigit(d);
         });
-      }
 
-      // PC向けドラッグ開始（HTML5 DnD）
-      if (!isTouchDevice) {
+        // PC向けドラッグ開始（HTML5 DnD）
         btn.addEventListener("dragstart", (e) => {
           e.dataTransfer.setData("text/plain", d);
         });
@@ -757,10 +958,8 @@
           touchDraggingDigit = d;
           isTouchDragging = false;
 
-          // ロングプレス判定（200ms）
           longPressTimer = setTimeout(() => {
             isTouchDragging = true;
-            // ゴースト生成
             dragGhost = document.createElement("div");
             dragGhost.className = "drag-ghost";
             dragGhost.textContent = touchDraggingDigit;
@@ -782,7 +981,6 @@
         }
       });
 
-      // PC向け dragover/drop
       if (!isTouchDevice) {
         slot.addEventListener("dragover", (e) => {
           if (!gameActive) return;
@@ -814,6 +1012,7 @@
 
           slotValues[index] = digit;
           updateSlotsView();
+          popSlot(index);
         });
       }
     });
@@ -824,15 +1023,14 @@
         if (!touchDraggingDigit) return;
         const touch = e.touches[0];
 
-        if (isTouchDragging) {
+        if (isTouchDragging && dragGhost) {
           moveGhost(touch.clientX, touch.clientY);
           const el = document.elementFromPoint(touch.clientX, touch.clientY);
           highlightSlotUnder(el);
-          e.preventDefault(); // ドラッグ中はスクロール抑制
+          e.preventDefault();
         }
       }, { passive: false });
 
-      // 自作ドラッグ：指を離したとき（タップ or ドラッグ終了）
       function finishTouchDrag(ev) {
         if (!touchDraggingDigit) return;
 
@@ -842,7 +1040,6 @@
         touchDraggingDigit = null;
 
         if (isTouchDragging) {
-          // ドラッグとして終了
           const touch = ev.changedTouches[0];
           const el = document.elementFromPoint(touch.clientX, touch.clientY);
           const slot = getSlotFromElement(el);
@@ -859,7 +1056,6 @@
           isTouchDragging = false;
           ev.preventDefault();
         } else {
-          // ロングプレス成立前に指を離した -> これはタップ
           handleDigitTapByDigit(digit);
         }
       }
@@ -886,16 +1082,26 @@
     giveupBtn.addEventListener("click", () => {
       if (!gameActive) return;
       statusText.textContent = `ギブアップ！答えは ${answer} でした。`;
+      statusText.classList.add("status-sad");
+      document.body.classList.add("giveup-flash");
+
       addLog(`<strong>ギブアップ</strong> ▶ 答え: <strong>${answer}</strong>`);
+
+      setTimeout(() => {
+        statusText.classList.remove("status-sad");
+        document.body.classList.remove("giveup-flash");
+      }, 450);
+
       endGame();
       saveStats();
       updateStatsView();
     });
 
-    // ページ読み込み時に戦績を復元
+    // ページ読み込み時に戦績を復元して即ゲーム開始
     loadStats();
     updateStatsView();
     updateSlotsView();
+    startGame();
   </script>
 </body>
 </html>
