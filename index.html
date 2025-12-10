@@ -274,6 +274,25 @@
       }
     }
     /* ▲ お祝い演出ここまで ▲ */
+
+    /* ▼ 自作ドラッグ用のゴースト ▼ */
+    .drag-ghost {
+      position: fixed;
+      width: 40px;
+      height: 40px;
+      border-radius: 999px;
+      background: #f97316;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      pointer-events: none;
+      z-index: 9999;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+      transform: translate(-50%, -50%);
+    }
+    /* ▲ 自作ドラッグ用ゴーストここまで ▲ */
   </style>
 </head>
 <body>
@@ -402,6 +421,10 @@
     const celebrationEl = document.getElementById("celebration");
     const celebrationTextEl = document.getElementById("celebrationText");
     const celebrationSubEl = document.getElementById("celebrationSub");
+
+    // 自作ドラッグ用
+    let touchDraggingDigit = null;
+    let dragGhost = null;
 
     // ===== 戦績の読み込み・保存・表示 =====
     function loadStats() {
@@ -640,10 +663,55 @@
       }
     }
 
+    // ===== 自作ドラッグ用ヘルパー =====
+    function moveGhost(x, y) {
+      if (!dragGhost) return;
+      dragGhost.style.left = x + "px";
+      dragGhost.style.top = y + "px";
+    }
+
+    function getSlotFromElement(el) {
+      if (!el) return null;
+      if (el.classList && el.classList.contains("slot")) return el;
+      if (el.parentElement && el.parentElement.classList && el.parentElement.classList.contains("slot")) {
+        return el.parentElement;
+      }
+      return null;
+    }
+
+    function clearSlotHighlight() {
+      slots.forEach(s => s.classList.remove("highlight"));
+    }
+
+    function highlightSlotUnder(el) {
+      clearSlotHighlight();
+      const slot = getSlotFromElement(el);
+      if (slot) {
+        slot.classList.add("highlight");
+      }
+    }
+
+    function placeDigitIntoSlotElement(slotEl, digit) {
+      const index = slots.indexOf(slotEl);
+      if (index === -1) return;
+
+      // 既にその数字が他のスロットにあれば外す
+      const existingIndex = slotValues.indexOf(digit);
+      if (existingIndex !== -1 && existingIndex !== index) {
+        slotValues[existingIndex] = null;
+      }
+
+      if (!canPlaceDigitAt(index, digit)) return;
+
+      slotValues[index] = digit;
+      updateSlotsView();
+    }
+
     // ===== イベントセットアップ =====
 
-    // 数字チップ：タップで入力
+    // 数字チップ：タップで入力 & PC向け dragstart
     digitButtons.forEach(btn => {
+      // タップ（クリック）入力
       btn.addEventListener("click", () => {
         if (!gameActive) {
           messageEl.textContent = "まずはゲーム開始ボタンを押してね。";
@@ -662,13 +730,31 @@
         placeDigitInFirstEmpty(d);
       });
 
-      // ドラッグ開始
+      // PC向けドラッグ開始
       btn.addEventListener("dragstart", (e) => {
         e.dataTransfer.setData("text/plain", btn.dataset.digit);
       });
+
+      // スマホ向け自作ドラッグ開始
+      btn.addEventListener("touchstart", (e) => {
+        if (!gameActive) return;
+        const touch = e.touches[0];
+        touchDraggingDigit = btn.dataset.digit;
+
+        // ゴースト生成
+        dragGhost = document.createElement("div");
+        dragGhost.className = "drag-ghost";
+        dragGhost.textContent = touchDraggingDigit;
+        document.body.appendChild(dragGhost);
+
+        moveGhost(touch.clientX, touch.clientY);
+        messageEl.textContent = "";
+        // スクロールを防ぐ
+        e.preventDefault();
+      }, { passive: false });
     });
 
-    // スロット：タップで消す & ドロップでセット
+    // スロット：タップで消す & PC向け drop
     slots.forEach((slot, index) => {
       slot.addEventListener("click", () => {
         if (!gameActive) return;
@@ -679,6 +765,7 @@
         }
       });
 
+      // PC向け dragover/drop
       slot.addEventListener("dragover", (e) => {
         if (!gameActive) return;
         e.preventDefault();
@@ -704,7 +791,6 @@
           slotValues[existingIndex] = null;
         }
 
-        // ここで重複＆先頭0チェック
         if (!canPlaceDigitAt(index, digit)) {
           return;
         }
@@ -712,6 +798,47 @@
         slotValues[index] = digit;
         updateSlotsView();
       });
+    });
+
+    // 自作ドラッグ：指を動かしている間
+    document.addEventListener("touchmove", (e) => {
+      if (!touchDraggingDigit || !dragGhost) return;
+      const touch = e.touches[0];
+      moveGhost(touch.clientX, touch.clientY);
+
+      const el = document.elementFromPoint(touch.clientX, touch.clientY);
+      highlightSlotUnder(el);
+
+      // ページスクロールを抑制
+      e.preventDefault();
+    }, { passive: false });
+
+    // 自作ドラッグ：指を離したとき
+    function finishTouchDrag(ev) {
+      if (!touchDraggingDigit) return;
+
+      const touch = ev.changedTouches[0];
+      const el = document.elementFromPoint(touch.clientX, touch.clientY);
+      const slot = getSlotFromElement(el);
+
+      if (gameActive && slot && touchDraggingDigit != null) {
+        placeDigitIntoSlotElement(slot, touchDraggingDigit);
+      }
+
+      clearSlotHighlight();
+      touchDraggingDigit = null;
+      if (dragGhost) {
+        dragGhost.remove();
+        dragGhost = null;
+      }
+    }
+
+    document.addEventListener("touchend", (e) => {
+      finishTouchDrag(e);
+    });
+
+    document.addEventListener("touchcancel", (e) => {
+      finishTouchDrag(e);
     });
 
     guessBtn.addEventListener("click", handleGuess);
