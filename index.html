@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
-  <title>ヒット＆ブロー 4桁ゲーム</title>
+  <title>ヒット＆ブロー 3桁ゲーム</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     body {
@@ -38,22 +38,7 @@
       gap: 8px;
       margin-top: 12px;
       margin-bottom: 8px;
-    }
-
-    input[type="number"] {
-      flex: 1;
-      padding: 10px;
-      font-size: 1.1rem;
-      border-radius: 8px;
-      border: none;
-      outline: none;
-      box-sizing: border-box;
-    }
-
-    input::-webkit-inner-spin_button,
-    input::-webkit-outer-spin_button {
-      -webkit-appearance: none;
-      margin: 0;
+      align-items: center;
     }
 
     button {
@@ -113,6 +98,68 @@
       color: #a5b4fc;
     }
 
+    /* ▼ スロット＆数字チップ ▼ */
+    .slots {
+      display: flex;
+      gap: 8px;
+    }
+
+    .slot {
+      width: 56px;
+      height: 56px;
+      border-radius: 12px;
+      background: #020617;
+      border: 2px solid #4b5563;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: #e5e7eb;
+      user-select: none;
+      touch-action: manipulation;
+    }
+
+    .slot.empty {
+      color: #4b5563;
+      font-size: 1.2rem;
+    }
+
+    .slot.highlight {
+      border-color: #f97316;
+      box-shadow: 0 0 0 2px rgba(249,115,22,0.5);
+    }
+
+    .digit-pad {
+      margin-top: 8px;
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .digit {
+      padding: 10px 0;
+      border-radius: 999px;
+      background: #374151;
+      color: #f9fafb;
+      font-size: 1.1rem;
+      border: none;
+      font-weight: 600;
+      text-align: center;
+      cursor: pointer;
+      user-select: none;
+      touch-action: manipulation;
+    }
+
+    .digit.used {
+      opacity: 0.35;
+    }
+
+    .digit:active {
+      transform: translateY(1px) scale(0.98);
+    }
+    /* ▲ スロット＆数字チップここまで ▲ */
+
     /* ▼ 記録用の見た目 ▼ */
     .stats {
       margin-top: 16px;
@@ -145,16 +192,98 @@
       font-weight: 600;
     }
     /* ▲ 記録用の見た目ここまで ▲ */
+
+    /* ▼ 正解時お祝いオーバーレイ ▼ */
+    .celebration {
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(circle at center, rgba(255,255,255,0.18), rgba(0,0,0,0.9));
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 999;
+      animation: fadeIn 0.25s ease-out;
+    }
+
+    .celebration.show {
+      display: flex;
+    }
+
+    .celebration-content {
+      text-align: center;
+      animation: popIn 0.4s ease-out;
+    }
+
+    .celebration-emoji {
+      font-size: 3.5rem;
+      margin-bottom: 8px;
+      animation: bounce 0.8s ease-out infinite;
+    }
+
+    .celebration-text {
+      font-size: 1.6rem;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      margin-bottom: 4px;
+      text-shadow: 0 0 8px rgba(255,255,255,0.4);
+    }
+
+    .celebration-sub {
+      font-size: 1rem;
+      color: #e5e7eb;
+      margin-bottom: 12px;
+    }
+
+    .celebration-note {
+      font-size: 0.8rem;
+      color: #9ca3af;
+    }
+
+    .confetti {
+      position: absolute;
+      width: 8px;
+      height: 14px;
+      border-radius: 2px;
+      opacity: 0.9;
+      animation: confettiFall 1.8s linear forwards;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    @keyframes popIn {
+      0% { transform: scale(0.6); opacity: 0; }
+      60% { transform: scale(1.05); opacity: 1; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-6px); }
+    }
+
+    @keyframes confettiFall {
+      0% {
+        transform: translateY(-20vh) rotate(0deg);
+      }
+      100% {
+        transform: translateY(110vh) rotate(360deg);
+        opacity: 0;
+      }
+    }
+    /* ▲ お祝い演出ここまで ▲ */
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>ヒット＆ブロー（4桁）</h1>
+    <h1>ヒット＆ブロー（3桁）</h1>
     <p>
-      4桁の数字を当てるゲームです。<br />
+      3桁の数字を当てるゲームです。<br />
       ・数字はすべて <strong>バラバラ</strong><br />
       ・先頭は <strong>0になりません</strong><br />
-      例：1234, 9472 など
+      例：123, 947 など
     </p>
 
     <div class="status" id="statusText">
@@ -163,16 +292,28 @@
 
     <div class="message" id="message"></div>
 
+    <!-- 入力スロット + 決定ボタン -->
     <div class="input-row">
-      <input
-        id="guessInput"
-        type="number"
-        inputmode="numeric"
-        pattern="[0-9]*"
-        placeholder="1234"
-        disabled
-      />
+      <div class="slots">
+        <div class="slot empty" data-index="0">□</div>
+        <div class="slot empty" data-index="1">□</div>
+        <div class="slot empty" data-index="2">□</div>
+      </div>
       <button id="guessBtn" disabled>決定</button>
+    </div>
+
+    <!-- 数字チップ -->
+    <div class="digit-pad" id="digitPad">
+      <button class="digit" data-digit="1" draggable="true">1</button>
+      <button class="digit" data-digit="2" draggable="true">2</button>
+      <button class="digit" data-digit="3" draggable="true">3</button>
+      <button class="digit" data-digit="4" draggable="true">4</button>
+      <button class="digit" data-digit="5" draggable="true">5</button>
+      <button class="digit" data-digit="6" draggable="true">6</button>
+      <button class="digit" data-digit="7" draggable="true">7</button>
+      <button class="digit" data-digit="8" draggable="true">8</button>
+      <button class="digit" data-digit="9" draggable="true">9</button>
+      <button class="digit" data-digit="0" draggable="true">0</button>
     </div>
 
     <div class="input-row">
@@ -181,10 +322,11 @@
     </div>
 
     <div class="small">
-      ヒット：桁も数字も一致 / ブロー：数字だけ一致（場所違い）
+      数字は下のチップをタップするかドラッグしてスロットに置いてね。<br>
+      スロットをタップするとその桁が消えるよ。
     </div>
 
-    <!-- ログを先に表示 -->
+    <!-- ログ -->
     <div class="log" id="log"></div>
 
     <!-- ▼ 記録表示エリア（ページ最下部） ▼ -->
@@ -210,12 +352,26 @@
     <!-- ▲ 記録表示エリアここまで ▲ -->
   </div>
 
+  <!-- ▼ 正解時のお祝いオーバーレイ ▼ -->
+  <div id="celebration" class="celebration">
+    <div class="celebration-content">
+      <div class="celebration-emoji">🎉</div>
+      <div class="celebration-text" id="celebrationText">正解！</div>
+      <div class="celebration-sub" id="celebrationSub">おめでとう！</div>
+      <div class="celebration-note">画面は自動で閉じます</div>
+    </div>
+  </div>
+  <!-- ▲ お祝いオーバーレイここまで ▲ -->
+
   <script>
-    const DIGITS = 4;
+    const DIGITS = 3;
 
     let answer = "";
     let tries = 0;
     let gameActive = false;
+
+    // スロットの状態（null or "0"〜"9"）
+    let slotValues = [null, null, null];
 
     // === 戦績用データ ===
     const STORAGE_KEY_STATS = "hb_stats_v1";
@@ -226,7 +382,6 @@
       totalTriesOnClear: 0  // クリアしたときの手数合計（平均用）
     };
 
-    const guessInput = document.getElementById("guessInput");
     const guessBtn = document.getElementById("guessBtn");
     const startBtn = document.getElementById("startBtn");
     const giveupBtn = document.getElementById("giveupBtn");
@@ -234,11 +389,19 @@
     const logEl = document.getElementById("log");
     const statusText = document.getElementById("statusText");
 
+    const slots = Array.from(document.querySelectorAll(".slot"));
+    const digitButtons = Array.from(document.querySelectorAll(".digit"));
+
     // 戦績表示用要素
     const statTotal = document.getElementById("statTotal");
     const statClears = document.getElementById("statClears");
     const statBest = document.getElementById("statBest");
     const statAvg = document.getElementById("statAvg");
+
+    // お祝い関連
+    const celebrationEl = document.getElementById("celebration");
+    const celebrationTextEl = document.getElementById("celebrationText");
+    const celebrationSubEl = document.getElementById("celebrationSub");
 
     // ===== 戦績の読み込み・保存・表示 =====
     function loadStats() {
@@ -283,6 +446,101 @@
       }
     }
 
+    // ===== スロット & 数字チップ表示更新 =====
+    function updateDigitButtonsView() {
+      digitButtons.forEach(btn => {
+        const d = btn.dataset.digit;
+        if (slotValues.includes(d)) {
+          btn.classList.add("used");
+        } else {
+          btn.classList.remove("used");
+        }
+      });
+    }
+
+    function updateSlotsView() {
+      slots.forEach((slot, index) => {
+        const v = slotValues[index];
+        if (v === null) {
+          slot.textContent = "□";
+          slot.classList.add("empty");
+        } else {
+          slot.textContent = v;
+          slot.classList.remove("empty");
+        }
+      });
+      updateDigitButtonsView();
+      updateGuessBtnState();
+    }
+
+    function updateGuessBtnState() {
+      const filled = slotValues.every(v => v !== null);
+      guessBtn.disabled = !gameActive || !filled;
+    }
+
+    function isDigitUsed(d) {
+      return slotValues.includes(d);
+    }
+
+    function canPlaceDigitAt(index, digit) {
+      if (index === 0 && digit === "0") {
+        messageEl.textContent = "先頭は0以外にしてね。";
+        return false;
+      }
+      if (isDigitUsed(digit)) {
+        messageEl.textContent = "同じ数字は使えないよ。（全部バラバラ）";
+        return false;
+      }
+      return true;
+    }
+
+    function placeDigitInFirstEmpty(digit) {
+      const idx = slotValues.findIndex(v => v === null);
+      if (idx === -1) {
+        messageEl.textContent = `もう${DIGITS}桁入っているよ。消したい桁をタップしてね。`;
+        return;
+      }
+      if (!canPlaceDigitAt(idx, digit)) return;
+      slotValues[idx] = digit;
+      messageEl.textContent = "";
+      updateSlotsView();
+    }
+
+    // ===== お祝い演出 =====
+    function randomColor() {
+      const colors = ["#f97316", "#22c55e", "#3b82f6", "#eab308", "#ec4899", "#a855f7"];
+      return colors[Math.floor(Math.random() * colors.length)];
+    }
+
+    function createConfettiPieces() {
+      const old = celebrationEl.querySelectorAll(".confetti");
+      old.forEach(el => el.remove());
+
+      const count = 30;
+      for (let i = 0; i < count; i++) {
+        const piece = document.createElement("div");
+        piece.className = "confetti";
+        piece.style.left = Math.random() * 100 + "vw";
+        piece.style.backgroundColor = randomColor();
+        piece.style.animationDelay = (Math.random() * 0.6) + "s";
+        piece.style.transform = `translateY(-20vh) rotate(${Math.random() * 360}deg)`;
+        celebrationEl.appendChild(piece);
+      }
+    }
+
+    function showCelebration(tries) {
+      celebrationTextEl.textContent = "正解！";
+      celebrationSubEl.textContent = `${tries}回で当てたよ！すごい！`;
+      createConfettiPieces();
+      celebrationEl.classList.add("show");
+
+      setTimeout(() => {
+        celebrationEl.classList.remove("show");
+        const old = celebrationEl.querySelectorAll(".confetti");
+        old.forEach(el => el.remove());
+      }, 2200);
+    }
+
     // ===== ゲームロジック =====
     function generateAnswer() {
       const digits = "0123456789".split("");
@@ -312,21 +570,23 @@
       return { hit, blow };
     }
 
+    function resetSlots() {
+      slotValues = [null, null, null];
+      updateSlotsView();
+    }
+
     function startGame() {
       answer = generateAnswer();
       tries = 0;
       gameActive = true;
-      guessInput.disabled = false;
-      guessBtn.disabled = false;
+      guessBtn.disabled = true;
       giveupBtn.disabled = false;
-      guessInput.value = "";
-      guessInput.focus();
+      resetSlots();
       messageEl.textContent = "";
       logEl.innerHTML = "";
-      statusText.textContent = "ゲーム開始！4桁の数字を当ててみてね。";
-      console.log("答え:", answer); // デバッグ用。友達に見せたくなければ消してOK
+      statusText.textContent = "ゲーム開始！3桁の数字を当ててみてね。";
+      console.log("答え:", answer); // デバッグ用。不要なら削除OK
 
-      // 新しいゲーム開始 → プレイ回数を加算
       stats.totalGames += 1;
       saveStats();
       updateStatsView();
@@ -334,7 +594,6 @@
 
     function endGame() {
       gameActive = false;
-      guessInput.disabled = true;
       guessBtn.disabled = true;
       giveupBtn.disabled = true;
     }
@@ -343,42 +602,19 @@
       const div = document.createElement("div");
       div.className = "log-entry";
       div.innerHTML = text;
-      logEl.prepend(div); // 最新を上に
+      logEl.prepend(div);
     }
 
     function handleGuess() {
       if (!gameActive) return;
 
-      const raw = guessInput.value.trim();
+      if (slotValues.some(v => v === null)) {
+        messageEl.textContent = `${DIGITS}桁すべて埋めてね。`;
+        return;
+      }
+
+      const guess = slotValues.join(""); // "123" みたいな文字列
       messageEl.textContent = "";
-
-      if (!raw) {
-        messageEl.textContent = "数字を入力してね。";
-        return;
-      }
-
-      if (!/^\d+$/.test(raw)) {
-        messageEl.textContent = "数字だけを入力してね。";
-        return;
-      }
-
-      const guess = raw;
-
-      if (guess.length !== DIGITS) {
-        messageEl.textContent = `${DIGITS}桁で入力してね。`;
-        return;
-      }
-
-      const set = new Set(guess.split(""));
-      if (set.size !== DIGITS) {
-        messageEl.textContent = "同じ数字は使えないよ。（全部バラバラ）";
-        return;
-      }
-
-      if (guess[0] === "0") {
-        messageEl.textContent = "先頭は0以外にしてね。";
-        return;
-      }
 
       tries++;
       const { hit, blow } = calcHitAndBlow(answer, guess);
@@ -388,9 +624,7 @@
 
       if (hit === DIGITS) {
         statusText.textContent = `🎉 正解！答えは ${answer} でした！（${tries}回でクリア）`;
-        messageEl.textContent = "";
 
-        // クリア時に戦績を更新
         stats.clears += 1;
         stats.totalTriesOnClear += tries;
         if (stats.bestTries === null || tries < stats.bestTries) {
@@ -399,22 +633,88 @@
         saveStats();
         updateStatsView();
 
+        showCelebration(tries);
         endGame();
       } else {
-        // ← ここがバグってた行。これが正しい版。
         statusText.textContent = `ヒット: ${hit}, ブロー: ${blow}（${tries}回目）`;
-        guessInput.value = "";
-        guessInput.focus();
       }
     }
 
-    guessBtn.addEventListener("click", handleGuess);
+    // ===== イベントセットアップ =====
 
-    guessInput.addEventListener("keyup", (e) => {
-      if (e.key === "Enter") {
-        handleGuess();
-      }
+    // 数字チップ：タップで入力
+    digitButtons.forEach(btn => {
+      btn.addEventListener("click", () => {
+        if (!gameActive) {
+          messageEl.textContent = "まずはゲーム開始ボタンを押してね。";
+          return;
+        }
+        const d = btn.dataset.digit;
+        messageEl.textContent = "";
+
+        if (isDigitUsed(d)) {
+          // すでに使われていたら、その桁を外す（トグル）
+          const idx = slotValues.indexOf(d);
+          slotValues[idx] = null;
+          updateSlotsView();
+          return;
+        }
+        placeDigitInFirstEmpty(d);
+      });
+
+      // ドラッグ開始
+      btn.addEventListener("dragstart", (e) => {
+        e.dataTransfer.setData("text/plain", btn.dataset.digit);
+      });
     });
+
+    // スロット：タップで消す & ドロップでセット
+    slots.forEach((slot, index) => {
+      slot.addEventListener("click", () => {
+        if (!gameActive) return;
+        if (slotValues[index] !== null) {
+          slotValues[index] = null;
+          messageEl.textContent = "";
+          updateSlotsView();
+        }
+      });
+
+      slot.addEventListener("dragover", (e) => {
+        if (!gameActive) return;
+        e.preventDefault();
+        slot.classList.add("highlight");
+      });
+
+      slot.addEventListener("dragleave", () => {
+        slot.classList.remove("highlight");
+      });
+
+      slot.addEventListener("drop", (e) => {
+        if (!gameActive) return;
+        e.preventDefault();
+        slot.classList.remove("highlight");
+        const digit = e.dataTransfer.getData("text/plain");
+        if (!digit) return;
+
+        messageEl.textContent = "";
+
+        // 既にその数字が他のスロットにあれば外す
+        const existingIndex = slotValues.indexOf(digit);
+        if (existingIndex !== -1 && existingIndex !== index) {
+          slotValues[existingIndex] = null;
+        }
+
+        // ここで重複＆先頭0チェック
+        if (!canPlaceDigitAt(index, digit)) {
+          return;
+        }
+
+        slotValues[index] = digit;
+        updateSlotsView();
+      });
+    });
+
+    guessBtn.addEventListener("click", handleGuess);
 
     startBtn.addEventListener("click", () => {
       startGame();
@@ -432,6 +732,7 @@
     // ページ読み込み時に戦績を復元
     loadStats();
     updateStatsView();
+    updateSlotsView();
   </script>
 </body>
 </html>
