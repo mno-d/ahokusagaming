@@ -114,6 +114,39 @@
       font-size: 0.9rem;
       color: #a5b4fc;
     }
+
+    /* ▼ ここから記録用の見た目 ▼ */
+    .stats {
+      margin-top: 16px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      background: #111827;
+      border: 1px solid #374151;
+      font-size: 0.85rem;
+    }
+
+    .stats-title {
+      font-size: 0.9rem;
+      margin-bottom: 4px;
+      color: #e5e7eb;
+      font-weight: 600;
+    }
+
+    .stats-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 2px;
+    }
+
+    .stats-label {
+      color: #9ca3af;
+    }
+
+    .stats-value {
+      color: #f9fafb;
+      font-weight: 600;
+    }
+    /* ▲ 記録用の見た目ここまで ▲ */
   </style>
 </head>
 <body>
@@ -153,6 +186,28 @@
       ヒット：桁も数字も一致 / ブロー：数字だけ一致（場所違い）
     </div>
 
+    <!-- ▼ 記録表示エリア ▼ -->
+    <div class="stats">
+      <div class="stats-title">📊 記録（この端末・このブラウザ専用）</div>
+      <div class="stats-row">
+        <div class="stats-label">プレイ回数</div>
+        <div class="stats-value" id="statTotal">0</div>
+      </div>
+      <div class="stats-row">
+        <div class="stats-label">クリア回数</div>
+        <div class="stats-value" id="statClears">0</div>
+      </div>
+      <div class="stats-row">
+        <div class="stats-label">ベスト（最小手数）</div>
+        <div class="stats-value" id="statBest">-</div>
+      </div>
+      <div class="stats-row">
+        <div class="stats-label">平均手数（クリア時のみ）</div>
+        <div class="stats-value" id="statAvg">-</div>
+      </div>
+    </div>
+    <!-- ▲ 記録表示エリアここまで ▲ -->
+
     <div class="log" id="log"></div>
   </div>
 
@@ -163,6 +218,15 @@
     let tries = 0;
     let gameActive = false;
 
+    // === 戦績用データ ===
+    const STORAGE_KEY_STATS = "hb_stats_v1";
+    let stats = {
+      totalGames: 0,        // プレイ回数
+      clears: 0,            // クリア回数
+      bestTries: null,      // ベスト手数（小さいほど良い）
+      totalTriesOnClear: 0  // クリアしたときの手数合計（平均用）
+    };
+
     const guessInput = document.getElementById("guessInput");
     const guessBtn = document.getElementById("guessBtn");
     const startBtn = document.getElementById("startBtn");
@@ -171,6 +235,56 @@
     const logEl = document.getElementById("log");
     const statusText = document.getElementById("statusText");
 
+    // 戦績表示用要素
+    const statTotal = document.getElementById("statTotal");
+    const statClears = document.getElementById("statClears");
+    const statBest = document.getElementById("statBest");
+    const statAvg = document.getElementById("statAvg");
+
+    // ===== 戦績の読み込み・保存・表示 =====
+    function loadStats() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY_STATS);
+        if (!raw) return;
+        const data = JSON.parse(raw);
+        if (typeof data.totalGames === "number") stats.totalGames = data.totalGames;
+        if (typeof data.clears === "number") stats.clears = data.clears;
+        if (typeof data.totalTriesOnClear === "number") stats.totalTriesOnClear = data.totalTriesOnClear;
+        if (data.bestTries === null || typeof data.bestTries === "number") {
+          stats.bestTries = data.bestTries;
+        }
+      } catch (e) {
+        console.warn("戦績の読み込みに失敗しました:", e);
+      }
+    }
+
+    function saveStats() {
+      try {
+        localStorage.setItem(STORAGE_KEY_STATS, JSON.stringify(stats));
+      } catch (e) {
+        console.warn("戦績の保存に失敗しました:", e);
+      }
+    }
+
+    function updateStatsView() {
+      statTotal.textContent = stats.totalGames;
+      statClears.textContent = stats.clears;
+
+      if (stats.bestTries == null) {
+        statBest.textContent = "-";
+      } else {
+        statBest.textContent = stats.bestTries + " 手";
+      }
+
+      if (stats.clears === 0) {
+        statAvg.textContent = "-";
+      } else {
+        const avg = stats.totalTriesOnClear / stats.clears;
+        statAvg.textContent = avg.toFixed(1) + " 手";
+      }
+    }
+
+    // ===== ゲームロジック =====
     function generateAnswer() {
       const digits = "0123456789".split("");
       const firstIndex = Math.floor(Math.random() * 9) + 1; // 1〜9
@@ -213,6 +327,11 @@
       logEl.innerHTML = "";
       statusText.textContent = "ゲーム開始！4桁の数字を当ててみてね。";
       console.log("答え:", answer); // デバッグ用。友達に見せたくなければ消してOK
+
+      // 新しいゲーム開始 → プレイ回数を加算
+      stats.totalGames += 1;
+      saveStats();
+      updateStatsView();
     }
 
     function endGame() {
@@ -273,6 +392,16 @@
       if (hit === DIGITS) {
         statusText.textContent = `🎉 正解！答えは ${answer} でした！（${tries}回でクリア）`;
         messageEl.textContent = "";
+
+        // クリア時に戦績を更新
+        stats.clears += 1;
+        stats.totalTriesOnClear += tries;
+        if (stats.bestTries === null || tries < stats.bestTries) {
+          stats.bestTries = tries;
+        }
+        saveStats();
+        updateStatsView();
+
         endGame();
       } else {
         statusText.textContent = `ヒット: ${hit}, ブロー: ${blow}（${tries}回目）`;
@@ -298,7 +427,14 @@
       statusText.textContent = `ギブアップ！答えは ${answer} でした。`;
       addLog(`<strong>ギブアップ</strong> ▶ 答え: <strong>${answer}</strong>`);
       endGame();
+      // ギブアップ時は戦績はそのまま（プレイ回数だけカウント済み）
+      saveStats();
+      updateStatsView();
     });
+
+    // ページ読み込み時に戦績を復元
+    loadStats();
+    updateStatsView();
   </script>
 </body>
 </html>
