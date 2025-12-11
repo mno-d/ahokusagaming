@@ -779,6 +779,10 @@
         <div class="stats-label">最高スコア</div>
         <div class="stats-value" id="statBestScore">-</div>
       </div>
+      <div class="stats-row">
+        <div class="stats-label">連勝ボーナス</div>
+        <div class="stats-value" id="statCombo">なし</div>
+      </div>
     </div>
 
     <!-- ▼ 遊び方モーダル ▼ -->
@@ -885,7 +889,8 @@
       bestTries: null,
       totalTriesOnClear: 0,
       totalXp: 0,
-      bestScore: null
+      bestScore: null,
+      winStreak: 0 // 5ターン以内勝利の連勝数
     };
 
     let currentUser = null;
@@ -906,6 +911,7 @@
     const statBestScore = document.getElementById("statBestScore");
     const xpBarFill = document.getElementById("xpBarFill");
     const statsBox = document.getElementById("statsBox");
+    const statCombo = document.getElementById("statCombo");
 
     const celebrationEl = document.getElementById("celebration");
     const celebrationTextEl = document.getElementById("celebrationText");
@@ -1026,7 +1032,8 @@
             bestTries: null,
             totalTriesOnClear: 0,
             totalXp: 0,
-            bestScore: null
+            bestScore: null,
+            winStreak: 0
           };
           return;
         }
@@ -1043,6 +1050,7 @@
           data.bestScore === null || typeof data.bestScore === "number"
             ? data.bestScore
             : null;
+        stats.winStreak = data.winStreak || 0;
       } catch (e) {
         console.warn("戦績の読み込みに失敗:", e);
         stats = { 
@@ -1051,7 +1059,8 @@
           bestTries: null,
           totalTriesOnClear: 0,
           totalXp: 0,
-          bestScore: null
+          bestScore: null,
+          winStreak: 0
         };
       }
     }
@@ -1086,6 +1095,7 @@
               s.bestScore === null || typeof s.bestScore === "number"
                 ? s.bestScore
                 : null;
+            stats.winStreak = s.winStreak || 0;
           }
         } else {
           // 初回ログイン: ローカルの stats をそのままクラウドに送る
@@ -1120,6 +1130,14 @@
       statLevel.textContent = `Lv.${level}`;
       statBestScore.textContent =
         stats.bestScore == null ? "-" : `${stats.bestScore} 点`;
+
+      const combo = stats.winStreak || 0;
+      const bonusPercent = Math.min(combo, 10) * 10;
+      if (statCombo) {
+        statCombo.textContent =
+          combo === 0 ? "なし" : `${combo}連勝（+${bonusPercent}%）`;
+      }
+
       updateXpBarVisual(stats.totalXp);
     }
 
@@ -1284,10 +1302,16 @@
       }
     }
 
-    function showCelebration(tries, score, oldLevel, newLevel) {
+    function showCelebration(tries, baseScore, finalScore, combo, bonusPercent, oldLevel, newLevel) {
       celebrationTextEl.textContent = "正解！";
 
-      let subHtml = `${tries}回で当てたよ！<br>今回のスコア：<strong>${score}</strong> 点`;
+      let subHtml = `${tries}回で当てたよ！<br>基本スコア：<strong>${baseScore}</strong> 点`;
+      if (combo > 0 && bonusPercent > 0) {
+        subHtml += `<br>連勝ボーナス：${combo}連勝（+${bonusPercent}%）`;
+        subHtml += `<br>今回のスコア合計：<strong>${finalScore}</strong> 点`;
+      } else {
+        subHtml += `<br>今回のスコア：<strong>${finalScore}</strong> 点`;
+      }
       if (newLevel > oldLevel) {
         subHtml += `<br>Lv.${oldLevel} → <strong>Lv.${newLevel}</strong> にレベルアップ！`;
       }
@@ -1386,9 +1410,20 @@
       if (hit === DIGITS) {
         const prevXp = stats.totalXp || 0;
         const prevLevel = calcLevel(prevXp);
-        const scoreThisGame = calcScoreThisGame(tries);
+        const baseScore = calcScoreThisGame(tries);
 
         statusText.textContent = `🎉 正解！答えは ${answer} でした！（${tries}回でクリア）`;
+
+        // 5ターン以内クリアなら連勝継続、それ以外は連勝リセット
+        if (tries <= 5) {
+          stats.winStreak = (stats.winStreak || 0) + 1;
+        } else {
+          stats.winStreak = 0;
+        }
+
+        const combo = stats.winStreak || 0;
+        const bonusPercent = Math.min(combo, 10) * 10; // 最大 +100%
+        const finalScore = Math.round(baseScore * (1 + bonusPercent / 100));
 
         // 旧手数系の記録も一応維持
         stats.clears += 1;
@@ -1397,17 +1432,17 @@
           stats.bestTries = tries;
         }
 
-        // XP & スコア更新
-        stats.totalXp = prevXp + scoreThisGame;
-        if (stats.bestScore == null || scoreThisGame > stats.bestScore) {
-          stats.bestScore = scoreThisGame;
+        // XP & スコア更新（連勝ボーナス込み）
+        stats.totalXp = prevXp + finalScore;
+        if (stats.bestScore == null || finalScore > stats.bestScore) {
+          stats.bestScore = finalScore;
         }
         const newLevel = calcLevel(stats.totalXp);
 
         saveStats();
         updateStatsView();
         animateXpGain(prevXp, stats.totalXp);
-        showCelebration(tries, scoreThisGame, prevLevel, newLevel);
+        showCelebration(tries, baseScore, finalScore, combo, bonusPercent, prevLevel, newLevel);
         endGame();
       } else {
         statusText.textContent = `ヒット: ${hit}, ブロー: ${blow}（${tries}回目）`;
@@ -1711,6 +1746,7 @@
         document.body.classList.remove("giveup-flash");
       }, 450);
       endGame();
+      stats.winStreak = 0;
       saveStats();
       updateStatsView();
     });
