@@ -5,70 +5,21 @@
   <title>ヒット＆ブロー 3桁ゲーム | オンライン記録版</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
-    :root {
-      --bg:#111;
-      --card:#1e1e1e;
-      --text:#f5f5f5;
-      --muted:#9ca3af;
-      --accent:#3b82f6;
-      --accent-2:#22c55e;
-      --danger:#ef4444;
-    }
+    :root { --bg:#111; --card:#1e1e1e; --text:#f5f5f5; --muted:#9ca3af; --accent:#3b82f6; --accent-2:#22c55e; --danger:#ef4444; }
     * { box-sizing:border-box; }
-    body {
-      font-family: system-ui,-apple-system,BlinkMacSystemFont,sans-serif;
-      margin:0; padding:16px;
-      background:var(--bg); color:var(--text);
-      transition:filter .2s ease, background .3s ease;
-      min-height:100vh;
-    }
-    body.rainbow-mode {
-      background: linear-gradient(120deg,#ff0080,#ff8c00,#40e0d0,#4f46e5,#ff0080);
-      background-size:400% 400%;
-      animation: rainbowFlow 12s ease infinite;
-    }
+    body { font-family: system-ui,-apple-system,BlinkMacSystemFont,sans-serif; margin:0; padding:16px; background:var(--bg); color:var(--text); transition:filter .2s ease, background .3s ease; min-height:100vh; }
+    body.rainbow-mode { background: linear-gradient(120deg,#ff0080,#ff8c00,#40e0d0,#4f46e5,#ff0080); background-size:400% 400%; animation: rainbowFlow 12s ease infinite; }
     @keyframes rainbowFlow {0%{background-position:0% 50%;}50%{background-position:100% 50%;}100%{background-position:0% 50%;}}
-    body.space-mode {
-      background: radial-gradient(circle at 20% 20%,rgba(99,102,241,0.25),transparent 40%),
-                  radial-gradient(circle at 80% 30%,rgba(56,189,248,0.25),transparent 38%),
-                  radial-gradient(circle at 40% 80%,rgba(167,139,250,0.2),transparent 38%),
-                  #030712;
-      position:relative;
-      overflow:hidden;
-    }
-    body.space-mode::before {
-      content:"";
-      position:fixed; inset:0;
-      background-image:
-        radial-gradient(2px 2px at 10% 20%, rgba(255,255,255,0.6), transparent),
-        radial-gradient(1.5px 1.5px at 30% 50%, rgba(255,255,255,0.5), transparent),
-        radial-gradient(1.2px 1.2px at 70% 70%, rgba(255,255,255,0.5), transparent),
-        radial-gradient(1.8px 1.8px at 50% 30%, rgba(255,255,255,0.6), transparent);
-      background-repeat: repeat;
-      opacity:0.8;
-      pointer-events:none;
-      animation: starDrift 18s linear infinite;
-    }
+    body.space-mode { background: radial-gradient(circle at 20% 20%,rgba(99,102,241,0.25),transparent 40%), radial-gradient(circle at 80% 30%,rgba(56,189,248,0.25),transparent 38%), radial-gradient(circle at 40% 80%,rgba(167,139,250,0.2),transparent 38%), #030712; position:relative; overflow:hidden; }
+    body.space-mode::before { content:""; position:fixed; inset:0; background-image: radial-gradient(2px 2px at 10% 20%, rgba(255,255,255,0.6), transparent), radial-gradient(1.5px 1.5px at 30% 50%, rgba(255,255,255,0.5), transparent), radial-gradient(1.2px 1.2px at 70% 70%, rgba(255,255,255,0.5), transparent), radial-gradient(1.8px 1.8px at 50% 30%, rgba(255,255,255,0.6), transparent); background-repeat: repeat; opacity:0.8; pointer-events:none; animation: starDrift 18s linear infinite; }
     @keyframes starDrift {from{background-position:0 0;} to{background-position:120px 220px;}}
     body.burst-flash { animation: burstFlash .4s ease; }
     @keyframes burstFlash {0%{filter:brightness(2);}100%{filter:brightness(1);} }
 
-    .container {
-      max-width:480px; margin:0 auto; padding:16px;
-      background:var(--card); border-radius:12px;
-      box-shadow:0 0 16px rgba(0,0,0,0.4);
-      transition:transform .2s ease;
-      position:relative;
-      z-index:2;
-    }
+    .container { max-width:480px; margin:0 auto; padding:16px; background:var(--card); border-radius:12px; box-shadow:0 0 16px rgba(0,0,0,0.4); transition:transform .2s ease; position:relative; z-index:2; }
     h1 { text-align:center; font-size:1.4rem; margin:0 0 8px; }
     p { line-height:1.5; font-size:0.9rem; }
-    button {
-      padding:10px 14px; border-radius:8px; border:none;
-      font-size:0.95rem; font-weight:600; cursor:pointer;
-      background:var(--accent); color:#fff; white-space:nowrap;
-      transition:transform .1s ease, box-shadow .1s ease, background .2s ease, opacity .2s ease;
-    }
+    button { padding:10px 14px; border-radius:8px; border:none; font-size:0.95rem; font-weight:600; cursor:pointer; background:var(--accent); color:#fff; white-space:nowrap; transition:transform .1s ease, box-shadow .1s ease, background .2s ease, opacity .2s ease; }
     button.secondary { background:#4b5563; }
     button:disabled { opacity:.5; cursor:default; box-shadow:none; }
     .btn-pop { animation: btnPop .18s ease-out; }
@@ -77,11 +28,7 @@
     .input-row { display:flex; gap:8px; margin:12px 0 8px; align-items:center; }
     .message { min-height:1.4em; font-size:0.9rem; margin-bottom:8px; color:#f97316; transition:opacity .15s ease; }
     .log { margin-top:12px; border-top:1px solid #374151; padding-top:8px; font-size:0.9rem; }
-    .log-entry {
-      padding:6px 8px; border-radius:6px; margin-bottom:4px;
-      background:#111827; border-left:3px solid transparent;
-      animation: logDrop .22s ease-out; transform-origin:top;
-    }
+    .log-entry { padding:6px 8px; border-radius:6px; margin-bottom:4px; background:#111827; border-left:3px solid transparent; animation: logDrop .22s ease-out; transform-origin:top; }
     .log-entry strong { color:#e5e7eb; }
     .log-entry.hit-0 { background:#020617; border-left-color:#4b5563; }
     .log-entry.hit-1 { background:#0f172a; border-left-color:#3b82f6; }
@@ -99,12 +46,7 @@
     .slots.slots-ready { animation: slotsReady .25s ease-out; }
     @keyframes slotsReady {0%{transform:scale(1);}50%{transform:scale(1.03);}100%{transform:scale(1);} }
 
-    .slot {
-      width:56px; height:56px; border-radius:12px; background:#020617;
-      border:2px solid #4b5563; display:flex; align-items:center; justify-content:center;
-      font-size:1.6rem; font-weight:700; color:#e5e7eb; user-select:none; touch-action:manipulation;
-      transition:border-color .15s ease, box-shadow .15s ease, background .15s ease, transform .1s ease;
-    }
+    .slot { width:56px; height:56px; border-radius:12px; background:#020617; border:2px solid #4b5563; display:flex; align-items:center; justify-content:center; font-size:1.6rem; font-weight:700; color:#e5e7eb; user-select:none; touch-action:manipulation; transition:border-color .15s ease, box-shadow .15s ease, background .15s ease, transform .1s ease; }
     .slot.empty { color:#4b5563; font-size:1.2rem; }
     .slot.highlight { border-color:#f97316; animation: slotPulse .5s ease-out infinite; }
     @keyframes slotPulse {0%{box-shadow:0 0 0 0 rgba(249,115,22,0.5);}100%{box-shadow:0 0 0 8px rgba(249,115,22,0);} }
@@ -112,11 +54,7 @@
     @keyframes slotPop {0%{transform:scale(0.9);}60%{transform:scale(1.08);}100%{transform:scale(1);} }
 
     .digit-pad { margin-top:8px; display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:8px; }
-    .digit {
-      padding:10px 0; border-radius:999px; background:#374151; color:#f9fafb;
-      font-size:1.1rem; border:none; font-weight:600; text-align:center;
-      cursor:pointer; user-select:none; touch-action:manipulation; position:relative; overflow:hidden;
-    }
+    .digit { padding:10px 0; border-radius:999px; background:#374151; color:#f9fafb; font-size:1.1rem; border:none; font-weight:600; text-align:center; cursor:pointer; user-select:none; touch-action:manipulation; position:relative; overflow:hidden; }
     .digit.used { opacity:.35; }
     .digit:active { transform:translateY(1px) scale(.98); }
     .digit.flash { box-shadow:0 0 10px rgba(255,255,255,0.7); transform:scale(1.05); }
@@ -139,16 +77,10 @@
     .howto-bar { margin:4px 0; display:flex; align-items:center; justify-content:space-between; gap:8px; }
     .howto-label { font-size:0.8rem; color:var(--muted); }
     .howto-btn { padding:6px 10px; font-size:0.8rem; border-radius:999px; }
-    .howto-modal-overlay {
-      position:fixed; inset:0; background:rgba(15,23,42,0.92);
-      display:none; align-items:center; justify-content:center; z-index:900;
-    }
+
+    .howto-modal-overlay { position:fixed; inset:0; background:rgba(15,23,42,0.92); display:none; align-items:center; justify-content:center; z-index:900; }
     .howto-modal-overlay.show { display:flex; }
-    .howto-modal {
-      width:min(480px,92vw); max-height:80vh; background:#020617;
-      border-radius:16px; border:1px solid #4b5563; padding:14px 14px 16px;
-      box-shadow:0 20px 40px rgba(0,0,0,0.75); display:flex; flex-direction:column;
-    }
+    .howto-modal { width:min(480px,92vw); max-height:80vh; background:#020617; border-radius:16px; border:1px solid #4b5563; padding:14px 14px 16px; box-shadow:0 20px 40px rgba(0,0,0,0.75); display:flex; flex-direction:column; }
     .howto-modal-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; }
     .howto-modal-title { display:flex; align-items:center; gap:8px; font-size:1rem; font-weight:700; color:#e5e7eb; }
     .howto-close-btn { padding:4px 8px; border-radius:999px; background:#374151; color:#e5e7eb; border:none; font-size:0.8rem; cursor:pointer; }
@@ -164,18 +96,12 @@
     .auth-panel { margin-bottom:12px; padding:10px 12px; border-radius:10px; background:#111827; border:1px solid #374151; font-size:0.85rem; }
     .auth-status { margin-bottom:6px; color:#e5e7eb; }
     .auth-forms { display:flex; flex-direction:column; gap:6px; }
-    .auth-forms input {
-      width:100%; box-sizing:border-box; padding:8px 10px; border-radius:8px;
-      border:1px solid #4b5563; background:#020617; color:#e5e7eb; font-size:0.85rem;
-    }
+    .auth-forms input { width:100%; box-sizing:border-box; padding:8px 10px; border-radius:8px; border:1px solid #4b5563; background:#020617; color:#e5e7eb; font-size:0.85rem; }
     .auth-buttons { display:flex; gap:8px; margin-top:4px; }
     .loggedin { display:none; align-items:center; justify-content:space-between; gap:8px; margin-top:4px; font-size:0.85rem; }
     .loggedin-name { font-weight:600; color:#a5b4fc; }
 
-    .celebration {
-      position:fixed; inset:0; background:radial-gradient(circle at center, rgba(255,255,255,0.18), rgba(0,0,0,0.9));
-      display:none; align-items:center; justify-content:center; z-index:999; animation: fadeIn .25s ease-out; overflow:hidden;
-    }
+    .celebration { position:fixed; inset:0; background:radial-gradient(circle at center, rgba(255,255,255,0.18), rgba(0,0,0,0.9)); display:none; align-items:center; justify-content:center; z-index:999; animation: fadeIn .25s ease-out; overflow:hidden; }
     .celebration.show { display:flex; }
     .celebration-content { text-align:center; animation: popIn .4s ease-out; position:relative; z-index:2; }
     .celebration-emoji { font-size:3.5rem; margin-bottom:8px; animation:bounce .8s ease-out infinite; }
@@ -190,57 +116,26 @@
     @keyframes bounce {0%,100%{transform:translateY(0);}50%{transform:translateY(-6px);} }
     @keyframes confettiFall {0%{transform:translateY(-20vh) rotate(0deg);}100%{transform:translateY(110vh) rotate(360deg);opacity:0;} }
 
-    .drag-ghost {
-      position:fixed; width:40px; height:40px; border-radius:999px; background:#f97316; color:#fff;
-      display:flex; align-items:center; justify-content:center; font-weight:700; pointer-events:none;
-      z-index:9999; box-shadow:0 4px 10px rgba(0,0,0,0.5); transform:translate(-50%,-50%); animation: ghostPop .12s ease-out;
-    }
+    .drag-ghost { position:fixed; width:40px; height:40px; border-radius:999px; background:#f97316; color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700; pointer-events:none; z-index:9999; box-shadow:0 4px 10px rgba(0,0,0,0.5); transform:translate(-50%,-50%); animation: ghostPop .12s ease-out; }
     @keyframes ghostPop {0%{transform:translate(-50%,-50%) scale(0.8);}100%{transform:translate(-50%,-50%) scale(1);} }
 
-    .event-overlay {
-      position:fixed; inset:0; background:rgba(0,0,0,0.3);
-      display:none; align-items:center; justify-content:center;
-      z-index:950; opacity:0; transition:opacity .35s ease;
-    }
+    .event-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.3); display:none; align-items:center; justify-content:center; z-index:950; opacity:0; transition:opacity .35s ease; }
     .event-overlay.show { display:flex; opacity:1; }
-    .event-card {
-      background:#fff; color:#0f172a; border-radius:14px;
-      padding:18px 20px 14px; width:min(360px,90vw);
-      box-shadow:0 20px 50px rgba(0,0,0,0.35);
-      text-align:center; animation: popIn .35s ease; position:relative;
-    }
+    .event-card { background:#fff; color:#0f172a; border-radius:14px; padding:18px 20px 14px; width:min(360px,90vw); box-shadow:0 20px 50px rgba(0,0,0,0.35); text-align:center; animation: popIn .35s ease; position:relative; }
     .event-name { font-size:1.2rem; font-weight:800; margin-bottom:6px; }
     .event-desc { font-size:0.95rem; color:#334155; }
     .event-tag { display:inline-flex; padding:4px 10px; border-radius:999px; background:#e0f2fe; color:#0ea5e9; font-weight:700; font-size:0.85rem; margin-bottom:6px; }
-    .event-close {
-      position:absolute; right:12px; top:10px; border:none; background:#e2e8f0; color:#0f172a;
-      border-radius:999px; padding:4px 10px; font-weight:700; cursor:pointer; font-size:0.8rem;
-    }
+    .event-close { position:absolute; right:12px; top:10px; border:none; background:#e2e8f0; color:#0f172a; border-radius:999px; padding:4px 10px; font-weight:700; cursor:pointer; font-size:0.8rem; }
 
     #effectLayer { position:fixed; inset:0; pointer-events:none; z-index:940; overflow:hidden; }
-    .meteor {
-      position:absolute; width:22px; height:22px; background:linear-gradient(135deg,#f97316,#facc15);
-      border-radius:50% 40% 60% 40%; box-shadow:0 0 14px rgba(250,204,21,0.8);
-      transform:rotate(35deg); animation: meteorDrop .9s ease-out forwards;
-    }
+    .meteor { position:absolute; width:22px; height:22px; background:linear-gradient(135deg,#f97316,#facc15); border-radius:50% 40% 60% 40%; box-shadow:0 0 14px rgba(250,204,21,0.8); transform:rotate(35deg); animation: meteorDrop .9s ease-out forwards; }
     @keyframes meteorDrop {from{transform:translate(-30vw,-20vh) rotate(25deg);}to{transform:translate(140vw,120vh) rotate(160deg);} }
-    .explosion {
-      position:absolute; width:120px; height:120px; background:radial-gradient(circle, rgba(255,255,255,0.9) 0%, rgba(255,68,68,0.6) 45%, rgba(255,255,255,0) 70%);
-      opacity:0.9; animation: explodeFade .6s ease-out forwards; mix-blend-mode:screen;
-    }
+    .explosion { position:absolute; width:120px; height:120px; background:radial-gradient(circle, rgba(255,255,255,0.9) 0%, rgba(255,68,68,0.6) 45%, rgba(255,255,255,0) 70%); opacity:0.9; animation: explodeFade .6s ease-out forwards; mix-blend-mode:screen; }
     @keyframes explodeFade {from{transform:scale(0.4);}to{transform:scale(1.3); opacity:0;} }
-
-    .dice {
-      position:absolute; width:64px; height:64px; background:#fff; color:#0f172a; border-radius:10px;
-      display:flex; align-items:center; justify-content:center; font-size:1.6rem; font-weight:800;
-      box-shadow:0 12px 30px rgba(0,0,0,0.35); animation:diceRoll 0.9s ease-out forwards;
-    }
+    .dice { position:absolute; width:64px; height:64px; background:#fff; color:#0f172a; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:1.6rem; font-weight:800; box-shadow:0 12px 30px rgba(0,0,0,0.35); animation:diceRoll 0.9s ease-out forwards; }
     @keyframes diceRoll {0%{transform:translate(-50%,-50%) rotate(-20deg) scale(0.7); opacity:0;}60%{opacity:1;}100%{transform:translate(-50%,-50%) rotate(8deg) scale(1);} }
 
-    .rainbow-shine {
-      position:fixed; inset:0; pointer-events:none; background:linear-gradient(120deg,rgba(255,255,255,0.05),rgba(255,255,255,0));
-      animation: rainbowShine 4s ease-in-out infinite; z-index:1;
-    }
+    .rainbow-shine { position:fixed; inset:0; pointer-events:none; background:linear-gradient(120deg,rgba(255,255,255,0.05),rgba(255,255,255,0)); animation: rainbowShine 4s ease-in-out infinite; z-index:1; }
     @keyframes rainbowShine {0%{opacity:0;}50%{opacity:0.2;}100%{opacity:0;} }
 
     body.giveup-flash { filter:brightness(0.7); transition:filter .3s ease; }
@@ -305,19 +200,10 @@
 
     <div class="stats" id="statsBox">
       <div class="stats-title">📊 記録（ログイン中はオンライン保存）</div>
-      <div class="stats-row">
-        <div class="stats-label">レベル</div>
-        <div class="stats-value level-text" id="statLevel">Lv.1</div>
-      </div>
+      <div class="stats-row"><div class="stats-label">レベル</div><div class="stats-value level-text" id="statLevel">Lv.1</div></div>
       <div class="xp-bar-container"><div class="xp-bar-fill" id="xpBarFill"></div></div>
-      <div class="stats-row">
-        <div class="stats-label">最高スコア</div>
-        <div class="stats-value" id="statBestScore">-</div>
-      </div>
-      <div class="stats-row">
-        <div class="stats-label">連勝</div>
-        <div class="stats-value" id="statStreak">0 連勝</div>
-      </div>
+      <div class="stats-row"><div class="stats-label">最高スコア</div><div class="stats-value" id="statBestScore">-</div></div>
+      <div class="stats-row"><div class="stats-label">連勝</div><div class="stats-value" id="statStreak">0 連勝</div></div>
     </div>
   </div>
 
@@ -347,11 +233,7 @@
         <section class="howto-section">
           <h3><span class="howto-section-index">2</span>ヒットとブロー</h3>
           <p>あなたが入力した桁と答えを比べて、「場所と数字が一致」が<strong>ヒット</strong>、「数字だけ一致・場所違い」が<strong>ブロー</strong>です。</p>
-          <div class="howto-sub">
-            正解: <code>427</code><br>
-            入力 <code>472</code> → 0ヒット / 2ブロー<br>
-            入力 <code>407</code> → 1ヒット / 1ブロー
-          </div>
+          <div class="howto-sub">正解: <code>427</code><br>入力 <code>472</code> → 0ヒット / 2ブロー<br>入力 <code>407</code> → 1ヒット / 1ブロー</div>
         </section>
         <section class="howto-section">
           <h3><span class="howto-section-index">3</span>操作方法（スマホ向け）</h3>
@@ -376,22 +258,10 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-    import {
-      getAuth, onAuthStateChanged, createUserWithEmailAndPassword,
-      signInWithEmailAndPassword, signOut, updateProfile
-    } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+    import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, updateProfile } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
     import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyCqaHJpQuHv5n_cd4XUPgbBN2PP0LdLf4A",
-      authDomain: "hitandblow-game.firebaseapp.com",
-      projectId: "hitandblow-game",
-      storageBucket: "hitandblow-game.firebasestorage.app",
-      messagingSenderId: "1067509720762",
-      appId: "1:1067509720762:web:770911a0dcd039ee434483",
-      measurementId: "G-LMBDG5M2ZD"
-    };
-
+    const firebaseConfig = { apiKey:"AIzaSyCqaHJpQuHv5n_cd4XUPgbBN2PP0LdLf4A", authDomain:"hitandblow-game.firebaseapp.com", projectId:"hitandblow-game", storageBucket:"hitandblow-game.firebasestorage.app", messagingSenderId:"1067509720762", appId:"1:1067509720762:web:770911a0dcd039ee434483", measurementId:"G-LMBDG5M2ZD" };
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
@@ -400,31 +270,25 @@
     const STORAGE_KEY_STATS = "hb_stats_v2";
 
     const EVENTS = [
-      { key: "fullspeed", name: "⚡ フルスピードチャレンジ", probability: 0.15, baseMultiplier: 1, desc: "3T以内x100 / 4-5T x10 / 6T+ 連勝リセット" },
-      { key: "dice", name: "🎲 ダイスボーナス", probability: 0.20, baseMultiplier: 1, desc: "クリア時に2〜6倍" },
-      { key: "meteor", name: "☄ メテオチャンス", probability: 0.02, baseMultiplier: 1, desc: "クリアで x1000 & 連勝+3" },
-      { key: "rainbow", name: "🌈 レインボーモード", probability: 0.20, baseMultiplier: 1.3, desc: "背景が虹色に！ 連勝は通常" },
-      { key: "burst", name: "💥 バーストモード", probability: 0.15, baseMultiplier: 1.5, desc: "フラッシュ&爆発、6T以上でも連勝維持" },
-      { key: "space", name: "🌌 宇宙モード", probability: 0.10, baseMultiplier: 1.7, desc: "星空背景、4T以内なら連勝+2" },
-      { key: "none", name: "通常モード", probability: 0.18, baseMultiplier: 1, desc: "ボーナスなし" }
+      { key: "fullspeed", name: "⚡ フルスピードチャレンジ", probability: 15, baseMultiplier: 1, desc: "3T以内x100 / 4-5T x10 / 6T+ 連勝リセット" },
+      { key: "dice",      name: "🎲 ダイスボーナス",         probability: 20, baseMultiplier: 1, desc: "クリア時に2〜6倍" },
+      { key: "meteor",    name: "☄ メテオチャンス",         probability: 2,  baseMultiplier: 1, desc: "クリアで x1000 & 連勝+3" },
+      { key: "rainbow",   name: "🌈 レインボーモード",       probability: 20, baseMultiplier: 1.3, desc: "背景が虹色に！ 連勝は通常" },
+      { key: "burst",     name: "💥 バーストモード",         probability: 15, baseMultiplier: 1.5, desc: "フラッシュ&爆発、6T以上でも連勝維持" },
+      { key: "space",     name: "🌌 宇宙モード",             probability: 10, baseMultiplier: 1.7, desc: "星空背景、4T以内なら連勝+2" },
+      { key: "none",      name: "通常モード",                 probability: 18, baseMultiplier: 1, desc: "ボーナスなし" }
     ];
+
+    const EVENT_POOL = EVENTS.filter(ev => ev.key !== "none");
+    const NONE_EVENT = EVENTS.find(ev => ev.key === "none") || { key:"none", name:"通常モード", baseMultiplier:1, desc:"" };
 
     let answer = "";
     let tries = 0;
     let gameActive = false;
     let slotValues = [null, null, null];
-    let currentEvent = EVENTS[EVENTS.length - 1];
+    let currentEvent = NONE_EVENT;
     let eventMultiplier = 1;
-    let stats = {
-      totalGames: 0,
-      clears: 0,
-      bestTries: null,
-      totalTriesOnClear: 0,
-      totalXp: 0,
-      bestScore: null,
-      winStreak: 0,
-      bestStreak: 0
-    };
+    let stats = { totalGames:0, clears:0, bestTries:null, totalTriesOnClear:0, totalXp:0, bestScore:null, winStreak:0, bestStreak:0 };
     let currentUser = null;
 
     const guessBtn = document.getElementById("guessBtn");
@@ -493,9 +357,7 @@
       const base = 200 * Math.pow(1.6, difficulty);
       return Math.round(base * getScoreMultiplier(triesCount));
     }
-    function calcLevel(totalXp) {
-      return 1 + Math.floor((totalXp || 0) / 1500);
-    }
+    function calcLevel(totalXp) { return 1 + Math.floor((totalXp || 0) / 1500); }
     function updateXpBarVisual(totalXp) {
       if (!xpBarFill) return;
       const xp = Math.max(0, totalXp || 0);
@@ -552,17 +414,9 @@
         stats.bestScore = typeof data.bestScore === "number" || data.bestScore === null ? data.bestScore : null;
         stats.winStreak = typeof data.winStreak === "number" ? data.winStreak : 0;
         stats.bestStreak = typeof data.bestStreak === "number" ? data.bestStreak : 0;
-      } catch (e) {
-        console.warn("戦績の読み込みに失敗しました", e);
-      }
+      } catch (e) { console.warn("戦績の読み込みに失敗しました", e); }
     }
-    function saveStatsLocal() {
-      try {
-        localStorage.setItem(STORAGE_KEY_STATS, JSON.stringify(stats));
-      } catch (e) {
-        console.warn("戦績の保存に失敗しました", e);
-      }
-    }
+    function saveStatsLocal() { try { localStorage.setItem(STORAGE_KEY_STATS, JSON.stringify(stats)); } catch (e) { console.warn("戦績の保存に失敗しました", e); } }
     async function loadStatsCloud() {
       if (!currentUser || !db) return;
       const ref = doc(db, "users", currentUser.uid);
@@ -585,18 +439,14 @@
           await setDoc(ref, { email: currentUser.email, username: currentUser.displayName || null, stats }, { merge: true });
         }
         updateStatsView();
-      } catch (e) {
-        console.error("クラウド戦績の読み込みに失敗", e);
-      }
+      } catch (e) { console.error("クラウド戦績の読み込みに失敗", e); }
     }
     async function saveStatsCloud() {
       if (!currentUser || !db) return;
       try {
         const ref = doc(db, "users", currentUser.uid);
         await setDoc(ref, { email: currentUser.email, username: currentUser.displayName || null, stats }, { merge: true });
-      } catch (e) {
-        console.error("クラウド戦績の保存に失敗", e);
-      }
+      } catch (e) { console.error("クラウド戦績の保存に失敗", e); }
     }
     function updateStatsView() {
       const level = calcLevel(stats.totalXp);
@@ -608,31 +458,34 @@
     function loadStats() { loadStatsLocal(); }
     function saveStats() { saveStatsLocal(); if (currentUser) saveStatsCloud(); }
 
+    // 20% グローバル発生→イベント内抽選
     function selectEvent() {
-      const r = Math.random();
-      let acc = 0;
-      let picked = EVENTS[EVENTS.length - 1];
-      for (const ev of EVENTS) {
-        acc += ev.probability;
-        if (r < acc) { picked = ev; break; }
+      const globalRoll = Math.random();
+      if (globalRoll >= 0.2) { // 80%で通常
+        currentEvent = NONE_EVENT;
+        eventMultiplier = 1;
+        applyEventVisuals("none");
+        hideEventPopup();
+        return;
+      }
+      const totalWeight = EVENT_POOL.reduce((sum, ev) => sum + ev.probability, 0);
+      let r = Math.random() * totalWeight;
+      let picked = EVENT_POOL[0];
+      for (const ev of EVENT_POOL) {
+        if (r < ev.probability) { picked = ev; break; }
+        r -= ev.probability;
       }
       currentEvent = picked;
       eventMultiplier = picked.baseMultiplier || 1;
       applyEventVisuals(picked.key);
-      if (picked.key !== "none") {
-        showEventPopup(picked);
-      } else {
-        hideEventPopup();
-      }
+      showEventPopup(picked);
     }
     function showEventPopup(ev) {
       eventNameEl.textContent = ev.name;
       eventDescEl.textContent = ev.desc;
       eventOverlay.classList.add("show");
     }
-    function hideEventPopup() {
-      eventOverlay.classList.remove("show");
-    }
+    function hideEventPopup() { eventOverlay.classList.remove("show"); }
     function applyEventVisuals(key) {
       document.body.classList.remove("rainbow-mode", "space-mode", "burst-flash");
       const existingShine = document.querySelector(".rainbow-shine");
@@ -647,17 +500,9 @@
       }
     }
 
-    function baseStreakRule(triesCount) {
-      if (triesCount <= 5) {
-        return { delta: 1, reset: false };
-      }
-      return { delta: 0, reset: true };
-    }
+    function baseStreakRule(triesCount) { return triesCount <= 5 ? { delta:1, reset:false } : { delta:0, reset:true }; }
     function resolveEventOnWin(triesCount) {
-      let multiplier = 1;
-      let streakDelta = 0;
-      let resetStreak = false;
-
+      let multiplier = 1, streakDelta = 0, resetStreak = false;
       switch (currentEvent.key) {
         case "fullspeed":
           if (triesCount <= 3) { multiplier = 100; streakDelta = 2; }
@@ -669,26 +514,17 @@
           ({ delta: streakDelta, reset: resetStreak } = baseStreakRule(triesCount));
           break;
         case "meteor":
-          multiplier = 1000;
-          streakDelta = 3;
-          break;
+          multiplier = 1000; streakDelta = 3; break;
         case "rainbow":
           multiplier = currentEvent.baseMultiplier;
           ({ delta: streakDelta, reset: resetStreak } = baseStreakRule(triesCount));
           break;
         case "burst":
-          multiplier = currentEvent.baseMultiplier;
-          streakDelta = 1;
-          resetStreak = false;
-          break;
+          multiplier = currentEvent.baseMultiplier; streakDelta = 1; resetStreak = false; break;
         case "space":
           multiplier = currentEvent.baseMultiplier;
-          if (triesCount <= 4) {
-            streakDelta = 2;
-            resetStreak = false;
-          } else {
-            ({ delta: streakDelta, reset: resetStreak } = baseStreakRule(triesCount));
-          }
+          if (triesCount <= 4) { streakDelta = 2; resetStreak = false; }
+          else ({ delta: streakDelta, reset: resetStreak } = baseStreakRule(triesCount));
           break;
         case "none":
         default:
@@ -700,52 +536,21 @@
     }
     function resetStreak() { stats.winStreak = 0; }
     function applyStreakChange(delta, resetFlag) {
-      if (resetFlag) {
-        stats.winStreak = 0;
-      } else {
-        stats.winStreak = Math.max(0, stats.winStreak + delta);
-      }
+      if (resetFlag) stats.winStreak = 0;
+      else stats.winStreak = Math.max(0, stats.winStreak + delta);
       stats.bestStreak = Math.max(stats.bestStreak, stats.winStreak);
     }
-    function getComboPercent() {
-      return Math.min(stats.winStreak * 10, 200);
-    }
+    function getComboPercent() { return Math.min(stats.winStreak * 10, 200); }
 
-    function shakeSlots() {
-      slotsContainer.classList.add("shake");
-      setTimeout(() => slotsContainer.classList.remove("shake"), 220);
-    }
-    function popSlot(index) {
-      const slot = slots[index];
-      if (!slot) return;
-      slot.classList.remove("slot-pop");
-      requestAnimationFrame(() => {
-        slot.classList.add("slot-pop");
-        setTimeout(() => slot.classList.remove("slot-pop"), 200);
-      });
-    }
-    function flashDigitElement(btn) {
-      if (!btn) return;
-      btn.classList.add("flash");
-      setTimeout(() => btn.classList.remove("flash"), 130);
-    }
-    function updateDigitButtonsView() {
-      digitButtons.forEach(btn => {
-        const d = btn.dataset.digit;
-        if (slotValues.includes(d)) btn.classList.add("used");
-        else btn.classList.remove("used");
-      });
-    }
+    function shakeSlots() { slotsContainer.classList.add("shake"); setTimeout(() => slotsContainer.classList.remove("shake"), 220); }
+    function popSlot(index) { const slot = slots[index]; if (!slot) return; slot.classList.remove("slot-pop"); requestAnimationFrame(() => { slot.classList.add("slot-pop"); setTimeout(() => slot.classList.remove("slot-pop"), 200); }); }
+    function flashDigitElement(btn) { if (!btn) return; btn.classList.add("flash"); setTimeout(() => btn.classList.remove("flash"), 130); }
+    function updateDigitButtonsView() { digitButtons.forEach(btn => { const d = btn.dataset.digit; if (slotValues.includes(d)) btn.classList.add("used"); else btn.classList.remove("used"); }); }
     function updateSlotsView() {
       slots.forEach((slot, index) => {
         const v = slotValues[index];
-        if (v === null) {
-          slot.textContent = "□";
-          slot.classList.add("empty");
-        } else {
-          slot.textContent = v;
-          slot.classList.remove("empty");
-        }
+        if (v === null) { slot.textContent = "□"; slot.classList.add("empty"); }
+        else { slot.textContent = v; slot.classList.remove("empty"); }
       });
       updateDigitButtonsView();
       updateGuessBtnState();
@@ -757,34 +562,19 @@
       if (nowEnabled && !lastGuessEnabled) {
         guessBtn.classList.add("btn-pop");
         slotsContainer.classList.add("slots-ready");
-        setTimeout(() => {
-          guessBtn.classList.remove("btn-pop");
-          slotsContainer.classList.remove("slots-ready");
-        }, 260);
+        setTimeout(() => { guessBtn.classList.remove("btn-pop"); slotsContainer.classList.remove("slots-ready"); }, 260);
       }
       lastGuessEnabled = nowEnabled;
     }
     function isDigitUsed(d) { return slotValues.includes(d); }
     function canPlaceDigitAt(index, digit) {
-      if (index === 0 && digit === "0") {
-        messageEl.textContent = "先頭は0以外にしてね。";
-        shakeSlots();
-        return false;
-      }
-      if (isDigitUsed(digit)) {
-        messageEl.textContent = "同じ数字は使えないよ。（全部バラバラ）";
-        shakeSlots();
-        return false;
-      }
+      if (index === 0 && digit === "0") { messageEl.textContent = "先頭は0以外にしてね。"; shakeSlots(); return false; }
+      if (isDigitUsed(digit)) { messageEl.textContent = "同じ数字は使えないよ。（全部バラバラ）"; shakeSlots(); return false; }
       return true;
     }
     function placeDigitInFirstEmpty(digit) {
       const idx = slotValues.findIndex(v => v === null);
-      if (idx === -1) {
-        messageEl.textContent = `もう${DIGITS}桁入ってるよ。消したい桁をタップしてね。`;
-        shakeSlots();
-        return;
-      }
+      if (idx === -1) { messageEl.textContent = `もう${DIGITS}桁入ってるよ。消したい桁をタップしてね。`; shakeSlots(); return; }
       if (!canPlaceDigitAt(idx, digit)) return;
       slotValues[idx] = digit;
       messageEl.textContent = "";
@@ -796,26 +586,17 @@
       const fromVal = slotValues[fromIndex];
       const toVal = slotValues[toIndex];
       if (fromVal == null) return;
-      if (toIndex === 0 && fromVal === "0") {
-        messageEl.textContent = "先頭は0以外にしてね。";
-        shakeSlots();
-        return;
-      }
+      if (toIndex === 0 && fromVal === "0") { messageEl.textContent = "先頭は0以外にしてね。"; shakeSlots(); return; }
       slotValues[fromIndex] = toVal;
       slotValues[toIndex] = fromVal;
       messageEl.textContent = "";
       updateSlotsView();
-      popSlot(fromIndex);
-      popSlot(toIndex);
+      popSlot(fromIndex); popSlot(toIndex);
     }
 
-    function randomColor() {
-      const colors = ["#f97316","#22c55e","#3b82f6","#eab308","#ec4899","#a855f7"];
-      return colors[Math.floor(Math.random() * colors.length)];
-    }
+    function randomColor() { const colors = ["#f97316","#22c55e","#3b82f6","#eab308","#ec4899","#a855f7"]; return colors[Math.floor(Math.random() * colors.length)]; }
     function createConfettiPieces() {
-      const old = celebrationEl.querySelectorAll(".confetti");
-      old.forEach(el => el.remove());
+      const old = celebrationEl.querySelectorAll(".confetti"); old.forEach(el => el.remove());
       const count = 40;
       for (let i = 0; i < count; i++) {
         const piece = document.createElement("div");
@@ -831,21 +612,11 @@
         celebrationEl.appendChild(piece);
       }
     }
-    function createWaves() {
-      for (let i = 0; i < 3; i++) {
-        const wave = document.createElement("div");
-        wave.className = "wave";
-        wave.style.animationDelay = (i * 0.12) + "s";
-        celebrationEl.appendChild(wave);
-        setTimeout(() => wave.remove(), 1200);
-      }
-    }
+    function createWaves() { for (let i = 0; i < 3; i++) { const wave = document.createElement("div"); wave.className = "wave"; wave.style.animationDelay = (i * 0.12) + "s"; celebrationEl.appendChild(wave); setTimeout(() => wave.remove(), 1200); } }
     function showCelebration(triesCount, score, oldLevel, newLevel) {
       celebrationTextEl.textContent = "正解！";
       let subHtml = `${triesCount}回で当てたよ！<br>今回のスコア: <strong>${score}</strong> 点`;
-      if (newLevel > oldLevel) {
-        subHtml += `<br>Lv.${oldLevel} → <strong>Lv.${newLevel}</strong> にレベルアップ！`;
-      }
+      if (newLevel > oldLevel) subHtml += `<br>Lv.${oldLevel} → <strong>Lv.${newLevel}</strong> にレベルアップ！`;
       celebrationSubEl.innerHTML = subHtml;
       createConfettiPieces();
       createWaves();
@@ -877,10 +648,7 @@
       }
       return { hit, blow };
     }
-    function resetSlots() {
-      slotValues = [null, null, null];
-      updateSlotsView();
-    }
+    function resetSlots() { slotValues = [null, null, null]; updateSlotsView(); }
     function startGame() {
       answer = generateAnswer();
       tries = 0;
@@ -898,11 +666,7 @@
       saveStats();
       updateStatsView();
     }
-    function endGame() {
-      gameActive = false;
-      guessBtn.disabled = true;
-      giveupBtn.disabled = true;
-    }
+    function endGame() { gameActive = false; guessBtn.disabled = true; giveupBtn.disabled = true; }
     function addLog(text, hit) {
       const div = document.createElement("div");
       div.className = "log-entry";
@@ -945,11 +709,7 @@
 
     function handleGuess() {
       if (!gameActive) return;
-      if (slotValues.some(v => v === null)) {
-        messageEl.textContent = `${DIGITS}桁すべて埋めてね。`;
-        shakeSlots();
-        return;
-      }
+      if (slotValues.some(v => v === null)) { messageEl.textContent = `${DIGITS}桁すべて埋めてね。`; shakeSlots(); return; }
       const guess = slotValues.join("");
       messageEl.textContent = "";
       tries++;
@@ -989,38 +749,19 @@
 
         showCelebration(tries, finalScore, prevLevel, newLevel);
 
-        addLog(
-          `<strong>Score</strong> ▶ base ${baseScore} → 連勝+${comboPercent}% = ${scoreAfterCombo} → イベント x${multiplier} = <strong>${finalScore}</strong>`,
-          hit
-        );
+        addLog(`<strong>Score</strong> ▶ base ${baseScore} → 連勝+${comboPercent}% = ${scoreAfterCombo} → イベント x${multiplier} = <strong>${finalScore}</strong>`, hit);
         endGame();
-        setTimeout(startGame, 2400); // クリア後に自動リセット
+        setTimeout(startGame, 2400);
       } else {
         statusText.textContent = `ヒット: ${hit}, ブロー: ${blow}（${tries}回目）`;
       }
     }
 
-    function moveGhost(x, y) {
-      if (!dragGhost) return;
-      dragGhost.style.left = x + "px";
-      dragGhost.style.top = y + "px";
-    }
-    function getSlotFromElement(el) {
-      if (!el) return null;
-      if (el.classList && el.classList.contains("slot")) return el;
-      if (el.parentElement && el.parentElement.classList && el.parentElement.classList.contains("slot")) return el.parentElement;
-      return null;
-    }
+    function moveGhost(x, y) { if (!dragGhost) return; dragGhost.style.left = x + "px"; dragGhost.style.top = y + "px"; }
+    function getSlotFromElement(el) { if (!el) return null; if (el.classList && el.classList.contains("slot")) return el; if (el.parentElement && el.parentElement.classList && el.parentElement.classList.contains("slot")) return el.parentElement; return null; }
     function clearSlotHighlight() { slots.forEach(s => s.classList.remove("highlight")); }
-    function highlightSlotUnder(el) {
-      clearSlotHighlight();
-      const slot = getSlotFromElement(el);
-      if (slot) slot.classList.add("highlight");
-    }
-    function isInDigitPadArea(el) {
-      if (!el) return false;
-      return el === digitPad || digitPad.contains(el);
-    }
+    function highlightSlotUnder(el) { clearSlotHighlight(); const slot = getSlotFromElement(el); if (slot) slot.classList.add("highlight"); }
+    function isInDigitPadArea(el) { if (!el) return false; return el === digitPad || digitPad.contains(el); }
     function placeDigitIntoSlotElement(slotEl, digit) {
       const index = slots.indexOf(slotEl);
       if (index === -1) return;
@@ -1032,19 +773,11 @@
       popSlot(index);
     }
     function handleDigitTapByDigit(digit) {
-      if (!gameActive) {
-        messageEl.textContent = "次のゲームを準備中です。";
-        return;
-      }
+      if (!gameActive) { messageEl.textContent = "次のゲームを準備中です。"; return; }
       const btn = digitButtons.find(b => b.dataset.digit === digit);
       flashDigitElement(btn);
       messageEl.textContent = "";
-      if (isDigitUsed(digit)) {
-        const idx = slotValues.indexOf(digit);
-        slotValues[idx] = null;
-        updateSlotsView();
-        return;
-      }
+      if (isDigitUsed(digit)) { const idx = slotValues.indexOf(digit); slotValues[idx] = null; updateSlotsView(); return; }
       placeDigitInFirstEmpty(digit);
     }
 
@@ -1077,11 +810,7 @@
     slots.forEach((slot, index) => {
       slot.addEventListener("click", () => {
         if (!gameActive) return;
-        if (slotValues[index] !== null) {
-          slotValues[index] = null;
-          messageEl.textContent = "";
-          updateSlotsView();
-        }
+        if (slotValues[index] !== null) { slotValues[index] = null; messageEl.textContent = ""; updateSlotsView(); }
       });
 
       if (!isTouchDevice) {
@@ -1103,23 +832,13 @@
           let srcType = "digit";
           let digit = null;
           let fromIndex = null;
-          if (payload.startsWith("slot:")) {
-            const parts = payload.split(":");
-            fromIndex = parseInt(parts[1], 10);
-            digit = parts[2];
-            srcType = "slot";
-          } else if (payload.startsWith("digit:")) {
-            digit = payload.slice("digit:".length);
-          } else {
-            digit = payload;
-          }
+          if (payload.startsWith("slot:")) { const parts = payload.split(":"); fromIndex = parseInt(parts[1], 10); digit = parts[2]; srcType = "slot"; }
+          else if (payload.startsWith("digit:")) { digit = payload.slice("digit:".length); }
+          else { digit = payload; }
           if (!digit) return;
           const targetIndex = index;
           messageEl.textContent = "";
-          if (srcType === "slot" && fromIndex != null) {
-            moveOrSwapBetweenSlots(fromIndex, targetIndex);
-            return;
-          }
+          if (srcType === "slot" && fromIndex != null) { moveOrSwapBetweenSlots(fromIndex, targetIndex); return; }
           const existingIndex = slotValues.indexOf(digit);
           if (existingIndex !== -1 && existingIndex !== targetIndex) slotValues[existingIndex] = null;
           if (!canPlaceDigitAt(targetIndex, digit)) return;
@@ -1161,11 +880,7 @@
         const parts = payload.split(":");
         const fromIndex = parseInt(parts[1], 10);
         if (Number.isNaN(fromIndex)) return;
-        if (slotValues[fromIndex] !== null) {
-          slotValues[fromIndex] = null;
-          messageEl.textContent = "";
-          updateSlotsView();
-        }
+        if (slotValues[fromIndex] !== null) { slotValues[fromIndex] = null; messageEl.textContent = ""; updateSlotsView(); }
       });
     }
 
@@ -1198,15 +913,10 @@
           const inDigitPad = isInDigitPadArea(el);
           if (gameActive && digit != null) {
             if (sourceType === "slot" && fromIndex != null && inDigitPad) {
-              if (slotValues[fromIndex] !== null) {
-                slotValues[fromIndex] = null;
-                messageEl.textContent = "";
-                updateSlotsView();
-              }
+              if (slotValues[fromIndex] !== null) { slotValues[fromIndex] = null; messageEl.textContent = ""; updateSlotsView(); }
             } else if (slot) {
-              if (sourceType === "digit") {
-                placeDigitIntoSlotElement(slot, digit);
-              } else if (sourceType === "slot" && fromIndex != null) {
+              if (sourceType === "digit") { placeDigitIntoSlotElement(slot, digit); }
+              else if (sourceType === "slot" && fromIndex != null) {
                 const targetIndex = slots.indexOf(slot);
                 if (targetIndex !== -1) moveOrSwapBetweenSlots(fromIndex, targetIndex);
               }
@@ -1217,14 +927,9 @@
           isTouchDragging = false;
           ev.preventDefault();
         } else {
-          if (sourceType === "digit") {
-            handleDigitTapByDigit(digit);
-          } else if (sourceType === "slot" && fromIndex != null && gameActive) {
-            if (slotValues[fromIndex] !== null) {
-              slotValues[fromIndex] = null;
-              messageEl.textContent = "";
-              updateSlotsView();
-            }
+          if (sourceType === "digit") { handleDigitTapByDigit(digit); }
+          else if (sourceType === "slot" && fromIndex != null && gameActive) {
+            if (slotValues[fromIndex] !== null) { slotValues[fromIndex] = null; messageEl.textContent = ""; updateSlotsView(); }
           }
         }
       }
@@ -1249,26 +954,18 @@
       statusText.classList.add("status-sad");
       document.body.classList.add("giveup-flash");
       addLog(`<strong>ギブアップ</strong> ▶ 答え: <strong>${answer}</strong>`);
-      setTimeout(() => {
-        statusText.classList.remove("status-sad");
-        document.body.classList.remove("giveup-flash");
-      }, 450);
+      setTimeout(() => { statusText.classList.remove("status-sad"); document.body.classList.remove("giveup-flash"); }, 450);
       resetStreak();
       saveStats();
       updateStatsView();
       endGame();
-      setTimeout(startGame, 1200); // ギブアップ後も自動再開
+      setTimeout(startGame, 1200);
     });
 
     if (howtoBtn && howtoModal) howtoBtn.addEventListener("click", () => howtoModal.classList.add("show"));
-    if (howtoModal) {
-      howtoModal.addEventListener("click", e => { if (e.target === howtoModal) howtoModal.classList.remove("show"); });
-    }
+    if (howtoModal) howtoModal.addEventListener("click", e => { if (e.target === howtoModal) howtoModal.classList.remove("show"); });
     if (howtoCloseBtn && howtoModal) howtoCloseBtn.addEventListener("click", () => howtoModal.classList.remove("show"));
-
-    if (eventCloseBtn) {
-      eventCloseBtn.addEventListener("click", hideEventPopup);
-    }
+    if (eventCloseBtn) eventCloseBtn.addEventListener("click", hideEventPopup);
 
     signupBtn.addEventListener("click", async () => {
       const email = emailInput.value.trim();
@@ -1281,23 +978,14 @@
         if (username) await updateProfile(cred.user, { displayName: username });
         authStatusEl.textContent = "新規登録に成功しました。ログイン状態です。";
         emailInput.value = ""; passwordInput.value = "";
-      } catch (e) {
-        console.error(e);
-        authStatusEl.textContent = "新規登録に失敗しました: " + (e.message || e.code);
-      }
+      } catch (e) { console.error(e); authStatusEl.textContent = "新規登録に失敗しました: " + (e.message || e.code); }
     });
     loginBtn.addEventListener("click", async () => {
       const email = emailInput.value.trim();
       const password = passwordInput.value;
       if (!email || !password) { authStatusEl.textContent = "メールアドレスとパスワードを入力してください。"; return; }
-      try {
-        await signInWithEmailAndPassword(auth, email, password);
-        authStatusEl.textContent = "ログインしました。";
-        emailInput.value = ""; passwordInput.value = "";
-      } catch (e) {
-        console.error(e);
-        authStatusEl.textContent = "ログインに失敗しました: " + (e.message || e.code);
-      }
+      try { await signInWithEmailAndPassword(auth, email, password); authStatusEl.textContent = "ログインしました。"; emailInput.value = ""; passwordInput.value = ""; }
+      catch (e) { console.error(e); authStatusEl.textContent = "ログインに失敗しました: " + (e.message || e.code); }
     });
     logoutBtn.addEventListener("click", async () => { try { await signOut(auth); } catch (e) { console.error(e); } });
 
