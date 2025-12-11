@@ -81,7 +81,7 @@
       font-size: 0.9rem;
       margin-bottom: 8px;
       color: #f97316;
-      transition: opacity 0.15s ease;
+      transition: opacity 0.15s.ease;
     }
 
     .log {
@@ -132,11 +132,11 @@
       margin-top: 8px;
       font-size: 0.9rem;
       color: #a5b4fc;
-      transition: transform 0.15s ease, color 0.2s ease;
+      transition: transform 0.15s.ease, color 0.2s.ease;
     }
 
     .status-sad {
-      animation: statusShake 0.4s ease;
+      animation: statusShake 0.4s.ease;
       color: #f97316;
     }
 
@@ -149,7 +149,7 @@
     .slots {
       display: flex;
       gap: 8px;
-      transition: transform 0.15s ease;
+      transition: transform 0.15s.ease;
     }
 
     .slots.shake {
@@ -188,7 +188,7 @@
       color: #e5e7eb;
       user-select: none;
       touch-action: manipulation;
-      transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease, transform 0.1s ease;
+      transition: border-color 0.15s.ease, box-shadow 0.15s.ease, background 0.15s.ease, transform 0.1s.ease;
     }
 
     .slot.empty {
@@ -198,7 +198,7 @@
 
     .slot.highlight {
       border-color: #f97316;
-      animation: slotPulse 0.5s ease-out infinite;
+      animation: slotPulse 0.5s.ease-out infinite;
     }
 
     @keyframes slotPulse {
@@ -291,7 +291,7 @@
       align-items: center;
       justify-content: center;
       z-index: 999;
-      animation: fadeIn 0.25s ease-out;
+      animation: fadeIn 0.25s.ease-out;
       overflow: hidden;
     }
 
@@ -349,7 +349,7 @@
       width: 0;
       height: 0;
       opacity: 0.8;
-      animation: waveOut 0.9s ease-out forwards;
+      animation: waveOut 0.9s.ease-out forwards;
       z-index: 0;
     }
 
@@ -407,7 +407,7 @@
       z-index: 9999;
       box-shadow: 0 4px 10px rgba(0,0,0,0.5);
       transform: translate(-50%, -50%);
-      animation: ghostPop 0.12s ease-out;
+      animation: ghostPop 0.12s.ease-out;
     }
 
     @keyframes ghostPop {
@@ -1427,6 +1427,12 @@
         return;
       }
 
+      // ★ 追加: 6文字未満を事前チェック
+      if (password.length < 6) {
+        authStatusEl.textContent = "パスワードは6文字以上にしてください。";
+        return;
+      }
+
       try {
         const cred = await createUserWithEmailAndPassword(auth, email, password);
         if (username) {
@@ -1437,7 +1443,14 @@
         passwordInput.value = "";
       } catch (e) {
         console.error(e);
-        authStatusEl.textContent = "新規登録に失敗しました：" + (e.message || e.code);
+        // エラーコードごとに日本語で表示
+        if (e.code === "auth/email-already-in-use") {
+          authStatusEl.textContent = "そのメールアドレスはすでに使われています。";
+        } else if (e.code === "auth/weak-password") {
+          authStatusEl.textContent = "パスワードは6文字以上にしてください。";
+        } else {
+          authStatusEl.textContent = "新規登録に失敗しました：" + (e.message || e.code);
+        }
       }
     });
 
