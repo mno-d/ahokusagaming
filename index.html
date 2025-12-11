@@ -232,7 +232,7 @@
         </section>
         <section class="howto-section">
           <h3><span class="howto-section-index">2</span>ヒットとブロー</h3>
-          <p>あなたが入力した桁と答えを比べて、「場所と数字が一致」が<strong>ヒット</strong>、「数字だけ一致・場所違い」が<strong>ブロー</strong>です。</p>
+          <p>入力と答えを比べて、「場所も数字も一致」が<strong>ヒット</strong>、「数字だけ一致・場所違い」が<strong>ブロー</strong>です。</p>
           <div class="howto-sub">正解: <code>427</code><br>入力 <code>472</code> → 0ヒット / 2ブロー<br>入力 <code>407</code> → 1ヒット / 1ブロー</div>
         </section>
         <section class="howto-section">
@@ -269,13 +269,17 @@
     const DIGITS = 3;
     const STORAGE_KEY_STATS = "hb_stats_v2";
 
+    // イベント定義（通常モード含む）
     const EVENTS = [
-      { key: "fullspeed", name: "⚡ フルスピードチャレンジ", probability: 15, baseMultiplier: 1, desc: "3T以内x100 / 4-5T x10 / 6T+ 連勝リセット" },
+      { key: "fullspeed_l1", name: "⚡ フルスピードLv1（スプリント）", probability: 4, baseMultiplier: 1, desc: "2T以内x150 / 6T+連勝リセット" },
+      { key: "fullspeed_l2", name: "⚡ フルスピードLv2（ハイスピード）", probability: 4, baseMultiplier: 1, desc: "3T以内x80 / 6T+連勝リセット" },
+      { key: "fullspeed_l3", name: "⚡ フルスピードLv3（クイック）", probability: 4, baseMultiplier: 1, desc: "4T以内x20 / 6T+連勝リセット" },
+      { key: "fullspeed_l4", name: "⚡ フルスピードLv4（ラッシュ）", probability: 3, baseMultiplier: 1, desc: "5T以内x8 / 6T+連勝リセット" },
       { key: "dice",      name: "🎲 ダイスボーナス",         probability: 20, baseMultiplier: 1, desc: "クリア時に2〜6倍" },
       { key: "meteor",    name: "☄ メテオチャンス",         probability: 2,  baseMultiplier: 1, desc: "クリアで x1000 & 連勝+3" },
-      { key: "rainbow",   name: "🌈 レインボーモード",       probability: 20, baseMultiplier: 1.3, desc: "背景が虹色に！ 連勝は通常" },
-      { key: "burst",     name: "💥 バーストモード",         probability: 15, baseMultiplier: 1.5, desc: "フラッシュ&爆発、6T以上でも連勝維持" },
-      { key: "space",     name: "🌌 宇宙モード",             probability: 10, baseMultiplier: 1.7, desc: "星空背景、4T以内なら連勝+2" },
+      { key: "rainbow",   name: "🌈 レインボーモード",       probability: 20, baseMultiplier: 1.3, desc: "背景虹 / 連勝は通常" },
+      { key: "burst",     name: "💥 バーストモード",         probability: 15, baseMultiplier: 1.5, desc: "フラッシュ＋爆発 / 6T超でも連勝維持" },
+      { key: "space",     name: "🌌 宇宙モード",             probability: 10, baseMultiplier: 1.7, desc: "星空背景 / 4T以内なら連勝+2" },
       { key: "none",      name: "通常モード",                 probability: 18, baseMultiplier: 1, desc: "ボーナスなし" }
     ];
 
@@ -458,10 +462,10 @@
     function loadStats() { loadStatsLocal(); }
     function saveStats() { saveStatsLocal(); if (currentUser) saveStatsCloud(); }
 
-    // 20% グローバル発生→イベント内抽選
+    // 20%でイベント発生→イベント内抽選
     function selectEvent() {
       const globalRoll = Math.random();
-      if (globalRoll >= 0.2) { // 80%で通常
+      if (globalRoll >= 0.2) {
         currentEvent = NONE_EVENT;
         eventMultiplier = 1;
         applyEventVisuals("none");
@@ -501,12 +505,24 @@
     }
 
     function baseStreakRule(triesCount) { return triesCount <= 5 ? { delta:1, reset:false } : { delta:0, reset:true }; }
+
     function resolveEventOnWin(triesCount) {
       let multiplier = 1, streakDelta = 0, resetStreak = false;
       switch (currentEvent.key) {
-        case "fullspeed":
-          if (triesCount <= 3) { multiplier = 100; streakDelta = 2; }
-          else if (triesCount <= 5) { multiplier = 10; streakDelta = 1; }
+        case "fullspeed_l1":
+          if (triesCount <= 2) { multiplier = 150; streakDelta = 3; }
+          else { multiplier = 1; resetStreak = true; }
+          break;
+        case "fullspeed_l2":
+          if (triesCount <= 3) { multiplier = 80; streakDelta = 2; }
+          else { multiplier = 1; resetStreak = true; }
+          break;
+        case "fullspeed_l3":
+          if (triesCount <= 4) { multiplier = 20; streakDelta = 1; }
+          else { multiplier = 1; resetStreak = true; }
+          break;
+        case "fullspeed_l4":
+          if (triesCount <= 5) { multiplier = 8; streakDelta = 1; }
           else { multiplier = 1; resetStreak = true; }
           break;
         case "dice":
@@ -534,6 +550,7 @@
       }
       return { multiplier, streakDelta, resetStreak };
     }
+
     function resetStreak() { stats.winStreak = 0; }
     function applyStreakChange(delta, resetFlag) {
       if (resetFlag) stats.winStreak = 0;
@@ -562,7 +579,10 @@
       if (nowEnabled && !lastGuessEnabled) {
         guessBtn.classList.add("btn-pop");
         slotsContainer.classList.add("slots-ready");
-        setTimeout(() => { guessBtn.classList.remove("btn-pop"); slotsContainer.classList.remove("slots-ready"); }, 260);
+        setTimeout(() => {
+          guessBtn.classList.remove("btn-pop");
+          slotsContainer.classList.remove("slots-ready");
+        }, 260);
       }
       lastGuessEnabled = nowEnabled;
     }
@@ -591,7 +611,8 @@
       slotValues[toIndex] = fromVal;
       messageEl.textContent = "";
       updateSlotsView();
-      popSlot(fromIndex); popSlot(toIndex);
+      popSlot(fromIndex);
+      popSlot(toIndex);
     }
 
     function randomColor() { const colors = ["#f97316","#22c55e","#3b82f6","#eab308","#ec4899","#a855f7"]; return colors[Math.floor(Math.random() * colors.length)]; }
@@ -661,7 +682,6 @@
       logEl.innerHTML = "";
       statusText.textContent = "ゲーム開始！3桁の数字を当ててみてね。";
       selectEvent();
-      console.log("答え:", answer);
       stats.totalGames += 1;
       saveStats();
       updateStatsView();
@@ -832,9 +852,16 @@
           let srcType = "digit";
           let digit = null;
           let fromIndex = null;
-          if (payload.startsWith("slot:")) { const parts = payload.split(":"); fromIndex = parseInt(parts[1], 10); digit = parts[2]; srcType = "slot"; }
-          else if (payload.startsWith("digit:")) { digit = payload.slice("digit:".length); }
-          else { digit = payload; }
+          if (payload.startsWith("slot:")) {
+            const parts = payload.split(":");
+            fromIndex = parseInt(parts[1], 10);
+            digit = parts[2];
+            srcType = "slot";
+          } else if (payload.startsWith("digit:")) {
+            digit = payload.slice("digit:".length);
+          } else {
+            digit = payload;
+          }
           if (!digit) return;
           const targetIndex = index;
           messageEl.textContent = "";
@@ -1009,7 +1036,7 @@
     loadStats();
     updateStatsView();
     updateSlotsView();
-    startGame(); // 初回は自動スタート
+    startGame();
   </script>
 </body>
 </html>
