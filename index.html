@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
-  <title>ヒット＆ブロー 3桁ゲーム</title>
+  <title>ヒット＆ブロー 3桁ゲーム（オンライン記録版）</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     body {
@@ -35,14 +35,6 @@
       font-size: 0.9rem;
     }
 
-    .input-row {
-      display: flex;
-      gap: 8px;
-      margin-top: 12px;
-      margin-bottom: 8px;
-      align-items: center;
-    }
-
     button {
       padding: 10px 14px;
       border-radius: 8px;
@@ -53,7 +45,7 @@
       background: #3b82f6;
       color: white;
       white-space: nowrap;
-      transition: transform 0.1s ease, box-shadow 0.1s ease, background 0.2s ease, opacity 0.2s.ease;
+      transition: transform 0.1s ease, box-shadow 0.1s ease, background 0.2s ease, opacity 0.2s ease;
     }
 
     button.secondary {
@@ -74,6 +66,14 @@
       0%   { transform: scale(1); }
       50%  { transform: scale(1.07); }
       100% { transform: scale(1); }
+    }
+
+    .input-row {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+      margin-bottom: 8px;
+      align-items: center;
     }
 
     .message {
@@ -97,7 +97,7 @@
       margin-bottom: 4px;
       background: #111827;
       border-left: 3px solid transparent;
-      animation: logDrop 0.22s ease-out;
+      animation: logDrop 0.22s.ease-out;
       transform-origin: top;
     }
 
@@ -466,10 +466,87 @@
       background: #020617;
       border: 1px dashed #4b5563;
     }
+
+    /* ▼ 認証UI ▼ */
+
+    .auth-panel {
+      margin-bottom: 12px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      background: #111827;
+      border: 1px solid #374151;
+      font-size: 0.85rem;
+    }
+
+    .auth-status {
+      margin-bottom: 6px;
+      color: #e5e7eb;
+    }
+
+    .auth-forms {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .auth-forms input {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 8px 10px;
+      border-radius: 8px;
+      border: 1px solid #4b5563;
+      background: #020617;
+      color: #e5e7eb;
+      font-size: 0.85rem;
+    }
+
+    .auth-buttons {
+      display: flex;
+      gap: 8px;
+      margin-top: 4px;
+    }
+
+    .loggedin {
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-top: 4px;
+      font-size: 0.85rem;
+    }
+
+    .loggedin-name {
+      font-weight: 600;
+      color: #a5b4fc;
+    }
   </style>
 </head>
 <body>
   <div class="container">
+
+    <!-- ▼ Firebase ログインエリア ▼ -->
+    <div class="auth-panel">
+      <div id="authStatus" class="auth-status">
+        ログインすると記録がオンラインに保存されます（しなくても遊べます）。
+      </div>
+      <div id="authForms" class="auth-forms">
+        <input id="usernameInput" type="text" placeholder="ユーザー名（新規登録時のみ・任意）" />
+        <input id="emailInput" type="email" placeholder="メールアドレス" />
+        <input id="passwordInput" type="password" placeholder="パスワード" />
+        <div class="auth-buttons">
+          <button id="signupBtn" class="secondary">新規登録</button>
+          <button id="loginBtn">ログイン</button>
+        </div>
+      </div>
+      <div id="loggedInArea" class="loggedin">
+        <div>
+          <span class="loggedin-name" id="currentUserName"></span> さんでログイン中
+        </div>
+        <button id="logoutBtn" class="secondary">ログアウト</button>
+      </div>
+    </div>
+    <!-- ▲ 認証エリアここまで ▲ -->
+
     <h1>ヒット＆ブロー（3桁）</h1>
     <p>
       3桁の数字を当てるゲームです。<br />
@@ -541,7 +618,7 @@
     <div class="log" id="log"></div>
 
     <div class="stats">
-      <div class="stats-title">📊 記録（この端末・このブラウザ専用）</div>
+      <div class="stats-title">📊 記録（ログイン中はオンライン保存）</div>
       <div class="stats-row">
         <div class="stats-label">プレイ回数</div>
         <div class="stats-value" id="statTotal">0</div>
@@ -570,7 +647,40 @@
     </div>
   </div>
 
-  <script>
+  <!-- ▼ Firebase + ゲームロジック ▼ -->
+  <script type="module">
+    // Firebase SDK をCDNから読み込み
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+    import { 
+      getAuth,
+      onAuthStateChanged,
+      createUserWithEmailAndPassword,
+      signInWithEmailAndPassword,
+      signOut,
+      updateProfile
+    } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+    import {
+      getFirestore,
+      doc,
+      getDoc,
+      setDoc
+    } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+
+    // Soさんの設定
+    const firebaseConfig = {
+      apiKey: "AIzaSyCqaHJpQuHv5n_cd4XUPgbBN2PP0LdLf4A",
+      authDomain: "hitandblow-game.firebaseapp.com",
+      projectId: "hitandblow-game",
+      storageBucket: "hitandblow-game.firebasestorage.app",
+      messagingSenderId: "1067509720762",
+      appId: "1:1067509720762:web:770911a0dcd039ee434483",
+      measurementId: "G-LMBDG5M2ZD"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
     const DIGITS = 3;
 
     let answer = "";
@@ -578,6 +688,7 @@
     let gameActive = false;
     let slotValues = [null, null, null];
 
+    // stats は共通。guest時はlocalStorage、ログイン時はFirestoreに同期
     const STORAGE_KEY_STATS = "hb_stats_v1";
     let stats = {
       totalGames: 0,
@@ -585,6 +696,8 @@
       bestTries: null,
       totalTriesOnClear: 0
     };
+
+    let currentUser = null;
 
     const guessBtn = document.getElementById("guessBtn");
     const startBtn = document.getElementById("startBtn");
@@ -610,11 +723,23 @@
     const howtoBtn = document.getElementById("howtoBtn");
     const howtoPanel = document.getElementById("howtoPanel");
 
+    // 認証UI
+    const authStatusEl = document.getElementById("authStatus");
+    const authFormsEl = document.getElementById("authForms");
+    const loggedInAreaEl = document.getElementById("loggedInArea");
+    const currentUserNameEl = document.getElementById("currentUserName");
+    const usernameInput = document.getElementById("usernameInput");
+    const emailInput = document.getElementById("emailInput");
+    const passwordInput = document.getElementById("passwordInput");
+    const signupBtn = document.getElementById("signupBtn");
+    const loginBtn = document.getElementById("loginBtn");
+    const logoutBtn = document.getElementById("logoutBtn");
+
     let touchDraggingDigit = null;
     let dragGhost = null;
     let longPressTimer = null;
     let isTouchDragging = false;
-    let touchSourceType = null;      // "digit" | "slot"
+    let touchSourceType = null;
     let touchSourceSlotIndex = null;
 
     const isTouchDevice =
@@ -622,27 +747,78 @@
 
     let lastGuessEnabled = false;
 
-    function loadStats() {
+    // ----- stats 関連 -----
+
+    function loadStatsLocal() {
       try {
         const raw = localStorage.getItem(STORAGE_KEY_STATS);
-        if (!raw) return;
-        const data = JSON.parse(raw);
-        if (typeof data.totalGames === "number") stats.totalGames = data.totalGames;
-        if (typeof data.clears === "number") stats.clears = data.clears;
-        if (typeof data.totalTriesOnClear === "number") stats.totalTriesOnClear = data.totalTriesOnClear;
-        if (data.bestTries === null || typeof data.bestTries === "number") {
-          stats.bestTries = data.bestTries;
+        if (!raw) {
+          stats = { totalGames: 0, clears: 0, bestTries: null, totalTriesOnClear: 0 };
+          return;
         }
+        const data = JSON.parse(raw);
+        stats.totalGames = data.totalGames || 0;
+        stats.clears = data.clears || 0;
+        stats.totalTriesOnClear = data.totalTriesOnClear || 0;
+        stats.bestTries = (data.bestTries === null || typeof data.bestTries === "number")
+          ? data.bestTries
+          : null;
       } catch (e) {
         console.warn("戦績の読み込みに失敗:", e);
+        stats = { totalGames: 0, clears: 0, bestTries: null, totalTriesOnClear: 0 };
       }
     }
 
-    function saveStats() {
+    function saveStatsLocal() {
       try {
         localStorage.setItem(STORAGE_KEY_STATS, JSON.stringify(stats));
       } catch (e) {
         console.warn("戦績の保存に失敗:", e);
+      }
+    }
+
+    async function loadStatsCloud() {
+      if (!currentUser || !db) return;
+      const ref = doc(db, "users", currentUser.uid);
+      try {
+        const snap = await getDoc(ref);
+        if (snap.exists()) {
+          const data = snap.data();
+          if (data.stats) {
+            const s = data.stats;
+            stats.totalGames = s.totalGames || 0;
+            stats.clears = s.clears || 0;
+            stats.totalTriesOnClear = s.totalTriesOnClear || 0;
+            stats.bestTries =
+              s.bestTries === null || typeof s.bestTries === "number"
+                ? s.bestTries
+                : null;
+          }
+        } else {
+          // 初回ログイン: ローカルの stats をそのままクラウドに送る
+          await setDoc(ref, {
+            email: currentUser.email,
+            username: currentUser.displayName || null,
+            stats: stats
+          }, { merge: true });
+        }
+        updateStatsView();
+      } catch (e) {
+        console.error("クラウド戦績の読み込みに失敗:", e);
+      }
+    }
+
+    async function saveStatsCloud() {
+      if (!currentUser || !db) return;
+      try {
+        const ref = doc(db, "users", currentUser.uid);
+        await setDoc(ref, {
+          email: currentUser.email,
+          username: currentUser.displayName || null,
+          stats: stats
+        }, { merge: true });
+      } catch (e) {
+        console.error("クラウド戦績の保存に失敗:", e);
       }
     }
 
@@ -657,6 +833,21 @@
         statAvg.textContent = avg.toFixed(1) + " 手";
       }
     }
+
+    // 既存コードとの互換用
+    function loadStats() {
+      loadStatsLocal();
+    }
+
+    function saveStats() {
+      saveStatsLocal();
+      // ログインしていればクラウドにも反映
+      if (currentUser) {
+        saveStatsCloud();
+      }
+    }
+
+    // ----- 演出 / UI -----
 
     function shakeSlots() {
       slotsContainer.classList.add("shake");
@@ -1224,6 +1415,78 @@
       });
     }
 
+    // ---- 認証処理 ----
+
+    signupBtn.addEventListener("click", async () => {
+      const email = emailInput.value.trim();
+      const password = passwordInput.value;
+      const username = usernameInput.value.trim();
+
+      if (!email || !password) {
+        authStatusEl.textContent = "メールアドレスとパスワードを入力してください。";
+        return;
+      }
+
+      try {
+        const cred = await createUserWithEmailAndPassword(auth, email, password);
+        if (username) {
+          await updateProfile(cred.user, { displayName: username });
+        }
+        authStatusEl.textContent = "新規登録に成功しました。ログイン状態です。";
+        emailInput.value = "";
+        passwordInput.value = "";
+      } catch (e) {
+        console.error(e);
+        authStatusEl.textContent = "新規登録に失敗しました：" + (e.message || e.code);
+      }
+    });
+
+    loginBtn.addEventListener("click", async () => {
+      const email = emailInput.value.trim();
+      const password = passwordInput.value;
+
+      if (!email || !password) {
+        authStatusEl.textContent = "メールアドレスとパスワードを入力してください。";
+        return;
+      }
+
+      try {
+        await signInWithEmailAndPassword(auth, email, password);
+        authStatusEl.textContent = "ログインしました。";
+        emailInput.value = "";
+        passwordInput.value = "";
+      } catch (e) {
+        console.error(e);
+        authStatusEl.textContent = "ログインに失敗しました：" + (e.message || e.code);
+      }
+    });
+
+    logoutBtn.addEventListener("click", async () => {
+      try {
+        await signOut(auth);
+      } catch (e) {
+        console.error(e);
+      }
+    });
+
+    onAuthStateChanged(auth, async (user) => {
+      currentUser = user;
+      if (user) {
+        authFormsEl.style.display = "none";
+        loggedInAreaEl.style.display = "flex";
+        currentUserNameEl.textContent = user.displayName || user.email;
+        authStatusEl.textContent = "オンライン記録：ログイン中です。";
+        await loadStatsCloud();
+      } else {
+        loggedInAreaEl.style.display = "none";
+        authFormsEl.style.display = "flex";
+        authStatusEl.textContent = "ログインすると記録がオンラインに保存されます（しなくても遊べます）。";
+        loadStatsLocal();
+        updateStatsView();
+      }
+    });
+
+    // 初期化
     loadStats();
     updateStatsView();
     updateSlotsView();
