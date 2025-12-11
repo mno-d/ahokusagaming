@@ -5,7 +5,7 @@
   <title>ヒット＆ブロー 3桁ゲーム | オンライン記録版</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
-    :root { --bg:#111; --card:#1e1e1e; --text:#f5f5f5; --muted:#9ca3af; --accent:#3b82f6; --accent-2:#22c55e; --danger:#ef4444; }
+    :root { --bg:#0c111b; --card:#0f172a; --text:#e5e7eb; --muted:#94a3b8; --accent:#3b82f6; --accent-2:#22c55e; --danger:#ef4444; --gold:#fbbf24; }
     * { box-sizing:border-box; }
     body { font-family: system-ui,-apple-system,BlinkMacSystemFont,sans-serif; margin:0; padding:16px; background:var(--bg); color:var(--text); transition:filter .2s ease, background .3s ease; min-height:100vh; }
     body.rainbow-mode { background: linear-gradient(120deg,#ff0080,#ff8c00,#40e0d0,#4f46e5,#ff0080); background-size:400% 400%; animation: rainbowFlow 12s ease infinite; }
@@ -16,7 +16,7 @@
     body.burst-flash { animation: burstFlash .4s ease; }
     @keyframes burstFlash {0%{filter:brightness(2);}100%{filter:brightness(1);} }
 
-    .container { max-width:480px; margin:0 auto; padding:16px; background:var(--card); border-radius:12px; box-shadow:0 0 16px rgba(0,0,0,0.4); transition:transform .2s ease; position:relative; z-index:2; }
+    .container { max-width:480px; margin:0 auto; padding:16px; background:var(--card); border-radius:12px; box-shadow:0 0 18px rgba(0,0,0,0.45); transition:transform .2s ease; position:relative; z-index:2; }
     h1 { text-align:center; font-size:1.4rem; margin:0 0 8px; }
     p { line-height:1.5; font-size:0.9rem; }
     button { padding:10px 14px; border-radius:8px; border:none; font-size:0.95rem; font-weight:600; cursor:pointer; background:var(--accent); color:#fff; white-space:nowrap; transition:transform .1s ease, box-shadow .1s ease, background .2s ease, opacity .2s ease; }
@@ -101,13 +101,14 @@
     .loggedin { display:none; align-items:center; justify-content:space-between; gap:8px; margin-top:4px; font-size:0.85rem; }
     .loggedin-name { font-weight:600; color:#a5b4fc; }
 
-    .celebration { position:fixed; inset:0; background:radial-gradient(circle at center, rgba(255,255,255,0.18), rgba(0,0,0,0.9)); display:none; align-items:center; justify-content:center; z-index:999; animation: fadeIn .25s ease-out; overflow:hidden; }
+    /* 勝利演出をより読みやすくする改良 */
+    .celebration { position:fixed; inset:0; background:rgba(0,0,0,0.68); display:none; align-items:center; justify-content:center; z-index:999; animation: fadeIn .25s ease-out; overflow:hidden; backdrop-filter: blur(2px); }
     .celebration.show { display:flex; }
-    .celebration-content { text-align:center; animation: popIn .4s ease-out; position:relative; z-index:2; }
+    .celebration-content { text-align:center; animation: popIn .4s ease-out; position:relative; z-index:2; background:linear-gradient(150deg,#0b1526,#101d32); padding:20px 20px 18px; border-radius:16px; border:1px solid #1f2d46; box-shadow:0 22px 60px rgba(0,0,0,0.6), 0 0 20px rgba(59,130,246,0.35); }
     .celebration-emoji { font-size:3.5rem; margin-bottom:8px; animation:bounce .8s ease-out infinite; }
-    .celebration-text { font-size:1.6rem; font-weight:800; letter-spacing:0.08em; margin-bottom:4px; text-shadow:0 0 8px rgba(255,255,255,0.4); }
-    .celebration-sub { font-size:1rem; color:#e5e7eb; margin-bottom:12px; }
-    .celebration-note { font-size:0.8rem; color:var(--muted); }
+    .celebration-text { font-size:1.7rem; font-weight:800; letter-spacing:0.08em; margin-bottom:6px; color:#f8fbff; text-shadow:0 0 14px rgba(0,0,0,0.35), 0 0 20px rgba(59,130,246,0.35); }
+    .celebration-sub { font-size:1rem; color:#e2e8f0; margin-bottom:10px; font-weight:700; text-shadow:0 0 10px rgba(0,0,0,0.25); }
+    .celebration-note { font-size:0.83rem; color:#cbd5e1; }
     .confetti { position:absolute; border-radius:2px; opacity:0.9; animation: confettiFall 1.8s linear forwards; z-index:1; }
     .wave { position:absolute; border-radius:999px; border:2px solid rgba(255,255,255,0.6); left:50%; top:50%; transform:translate(-50%,-50%); width:0; height:0; opacity:0.8; animation: waveOut 0.9s ease-out forwards; z-index:0; }
     @keyframes waveOut {0%{width:0;height:0;opacity:0.8;}100%{width:260px;height:260px;opacity:0;} }
@@ -139,6 +140,21 @@
     @keyframes rainbowShine {0%{opacity:0;}50%{opacity:0.2;}100%{opacity:0;} }
 
     body.giveup-flash { filter:brightness(0.7); transition:filter .3s ease; }
+
+    /* スコアカード */
+    .score-card-overlay { position:fixed; inset:0; display:none; align-items:center; justify-content:center; z-index:930; pointer-events:none; }
+    .score-card-overlay.show { display:flex; }
+    .score-card { pointer-events:auto; background:#0b1220ee; color:#e2e8f0; border:1px solid #1f2937; border-radius:16px; padding:16px 18px; width:min(420px, 92vw); box-shadow:0 20px 60px rgba(0,0,0,0.65); animation: popIn .3s ease-out; }
+    .score-row { display:flex; align-items:center; justify-content:space-between; margin:4px 0; font-size:0.95rem; }
+    .score-label { color:#cbd5e1; font-weight:600; }
+    .score-value { font-weight:800; }
+    .score-final { font-size:1.6rem; font-weight:900; text-align:center; margin:6px 0 2px; color:#fbbf24; text-shadow:0 0 10px rgba(251,191,36,0.6); }
+    .score-badges { display:flex; gap:6px; flex-wrap:wrap; margin-top:6px; justify-content:center; }
+    .badge { padding:4px 8px; border-radius:999px; font-size:0.78rem; font-weight:700; }
+    .badge-base { background:#1f2937; color:#38bdf8; }
+    .badge-combo { background:#111827; color:#22c55e; border:1px solid #22c55e44; }
+    .badge-event { background:#1e1b4b; color:#c084fc; border:1px solid #c084fc44; }
+    .badge-best { background:#fbbf24; color:#0f172a; }
   </style>
 </head>
 <body>
@@ -167,7 +183,7 @@
       <button id="howtoBtn" class="secondary howto-btn">遊び方</button>
     </div>
 
-    <div class="status" id="statusText">数字を選んでみてね。</div>
+    <div class="status" id="statusText">数字を選んでみてね！</div>
     <div class="message" id="message"></div>
 
     <div class="input-row">
@@ -256,6 +272,18 @@
     </div>
   </div>
 
+  <!-- スコアカード -->
+  <div id="scoreOverlay" class="score-card-overlay">
+    <div class="score-card" id="scoreCard">
+      <div class="score-final" id="scoreFinal">0</div>
+      <div class="score-row"><div class="score-label">ベース</div><div class="score-value" id="scoreBase">0</div></div>
+      <div class="score-row"><div class="score-label">連勝ボーナス</div><div class="score-value" id="scoreCombo">0</div></div>
+      <div class="score-row"><div class="score-label">イベント倍率</div><div class="score-value" id="scoreEvent">x1</div></div>
+      <div class="score-row"><div class="score-label">最終スコア</div><div class="score-value" id="scoreFinalLine">0</div></div>
+      <div class="score-badges" id="scoreBadges"></div>
+    </div>
+  </div>
+
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
     import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, updateProfile } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
@@ -275,12 +303,12 @@
       { key: "fullspeed_l2", name: "⚡ フルスピードLv2（ハイスピード）", probability: 4, baseMultiplier: 1, desc: "3T以内x80 / 6T+連勝リセット" },
       { key: "fullspeed_l3", name: "⚡ フルスピードLv3（クイック）", probability: 4, baseMultiplier: 1, desc: "4T以内x20 / 6T+連勝リセット" },
       { key: "fullspeed_l4", name: "⚡ フルスピードLv4（ラッシュ）", probability: 3, baseMultiplier: 1, desc: "5T以内x8 / 6T+連勝リセット" },
-      { key: "dice",      name: "🎲 ダイスボーナス",         probability: 20, baseMultiplier: 1, desc: "クリア時に2〜6倍" },
-      { key: "meteor",    name: "☄ メテオチャンス",         probability: 2,  baseMultiplier: 1, desc: "クリアで x1000 & 連勝+3" },
-      { key: "rainbow",   name: "🌈 レインボーモード",       probability: 20, baseMultiplier: 1.3, desc: "背景虹 / 連勝は通常" },
-      { key: "burst",     name: "💥 バーストモード",         probability: 15, baseMultiplier: 1.5, desc: "フラッシュ＋爆発 / 6T超でも連勝維持" },
-      { key: "space",     name: "🌌 宇宙モード",             probability: 10, baseMultiplier: 1.7, desc: "星空背景 / 4T以内なら連勝+2" },
-      { key: "none",      name: "通常モード",                 probability: 18, baseMultiplier: 1, desc: "ボーナスなし" }
+      { key: "dice",      name: "🎲 ダイスボーナス",      probability: 20, baseMultiplier: 1,   desc: "クリア時に2〜6倍 / 連勝は通常" },
+      { key: "meteor",    name: "☄ メテオチャンス",       probability: 2,  baseMultiplier: 1,   desc: "クリアで x1000 & 連勝+3" },
+      { key: "rainbow",   name: "🌈 レインボーモード",     probability: 20, baseMultiplier: 1.3, desc: "背景虹 / 連勝は通常" },
+      { key: "burst",     name: "💥 バーストモード",       probability: 15, baseMultiplier: 1.5, desc: "フラッシュ＆爆発 / 6T超でも連勝維持" },
+      { key: "space",     name: "🌌 宇宙モード",           probability: 10, baseMultiplier: 1.7, desc: "星空背景 / 4T以内クリアで連勝+2" },
+      { key: "none",      name: "通常モード",             probability: 18, baseMultiplier: 1,   desc: "ボーナスなし" }
     ];
 
     const EVENT_POOL = EVENTS.filter(ev => ev.key !== "none");
@@ -337,6 +365,14 @@
     const eventCloseBtn = document.getElementById("eventClose");
     const effectLayer = document.getElementById("effectLayer");
 
+    const scoreOverlay = document.getElementById("scoreOverlay");
+    const scoreFinal = document.getElementById("scoreFinal");
+    const scoreBaseEl = document.getElementById("scoreBase");
+    const scoreComboEl = document.getElementById("scoreCombo");
+    const scoreEventEl = document.getElementById("scoreEvent");
+    const scoreFinalLine = document.getElementById("scoreFinalLine");
+    const scoreBadges = document.getElementById("scoreBadges");
+
     let touchDraggingDigit = null;
     let dragGhost = null;
     let longPressTimer = null;
@@ -347,15 +383,45 @@
     const isTouchDevice = "ontouchstart" in window || navigator.maxTouchPoints > 0;
     let lastGuessEnabled = false;
 
+    // Utility for count-up
+    function animateCount(el, from, to, duration = 600) {
+      const start = performance.now();
+      const diff = to - from;
+      function step(now) {
+        const t = Math.min(1, (now - start) / duration);
+        el.textContent = Math.round(from + diff * t);
+        if (t < 1) requestAnimationFrame(step);
+      }
+      requestAnimationFrame(step);
+    }
+
+    // Score card show
+    function showScoreCard(base, comboPercent, eventMult, finalScore, bestUpdated) {
+      scoreOverlay.classList.add("show");
+      scoreBadges.innerHTML = "";
+      const makeBadge = (cls, text) => { const b=document.createElement("div"); b.className=`badge ${cls}`; b.textContent=text; return b; };
+      scoreBadges.appendChild(makeBadge("badge-base","Base"));
+      scoreBadges.appendChild(makeBadge("badge-combo", `連勝 +${comboPercent}%`));
+      scoreBadges.appendChild(makeBadge("badge-event", `x${eventMult}`));
+      if (bestUpdated) scoreBadges.appendChild(makeBadge("badge-best", "Best!"));
+
+      scoreBaseEl.textContent = base;
+      scoreComboEl.textContent = Math.round(base * (comboPercent/100));
+      scoreEventEl.textContent = `x${eventMult}`;
+      scoreFinalLine.textContent = finalScore;
+      animateCount(scoreFinal, 0, finalScore, 700);
+      setTimeout(() => { scoreOverlay.classList.remove("show"); }, 2200);
+    }
+
     function getScoreMultiplier(triesCount) {
       if (triesCount <= 1) return 1.2;
       if (triesCount === 2) return 1.3;
       if (triesCount === 3) return 1.4;
       if (triesCount === 4) return 1.5;
       if (triesCount === 5) return 2.0;
-      if (triesCount === 6) return 2.5;
-      return 3.0;
+      return 1.0;
     }
+
     function calcScoreThisGame(triesCount) {
       const difficulty = Math.max(0, 10 - triesCount);
       const base = 200 * Math.pow(1.6, difficulty);
@@ -439,30 +505,31 @@
             stats.winStreak = typeof s.winStreak === "number" ? s.winStreak : 0;
             stats.bestStreak = typeof s.bestStreak === "number" ? s.bestStreak : 0;
           }
-        } else {
-          await setDoc(ref, { email: currentUser.email, username: currentUser.displayName || null, stats }, { merge: true });
         }
-        updateStatsView();
-      } catch (e) { console.error("クラウド戦績の読み込みに失敗", e); }
+      } catch (e) { console.error("クラウド記録読み込み失敗", e); }
     }
     async function saveStatsCloud() {
       if (!currentUser || !db) return;
-      try {
-        const ref = doc(db, "users", currentUser.uid);
-        await setDoc(ref, { email: currentUser.email, username: currentUser.displayName || null, stats }, { merge: true });
-      } catch (e) { console.error("クラウド戦績の保存に失敗", e); }
+      const ref = doc(db, "users", currentUser.uid);
+      try { await setDoc(ref, { stats }, { merge: true }); }
+      catch (e) { console.error("クラウド記録保存失敗", e); }
     }
+    function loadStats() { loadStatsLocal(); updateStatsView(); }
+    function saveStats() { saveStatsLocal(); if (currentUser) saveStatsCloud(); }
     function updateStatsView() {
-      const level = calcLevel(stats.totalXp);
-      statLevel.textContent = `Lv.${level}`;
-      statBestScore.textContent = stats.bestScore == null ? "-" : `${stats.bestScore} 点`;
-      statStreak.textContent = `${stats.winStreak} 連勝`;
+      if (statLevel) statLevel.textContent = `Lv.${calcLevel(stats.totalXp)}`;
+      if (statBestScore) statBestScore.textContent = stats.bestScore == null ? "-" : stats.bestScore.toString();
+      if (statStreak) statStreak.textContent = `${stats.winStreak} 連勝`;
       updateXpBarVisual(stats.totalXp);
     }
-    function loadStats() { loadStatsLocal(); }
-    function saveStats() { saveStatsLocal(); if (currentUser) saveStatsCloud(); }
+    function resetStreak() { stats.winStreak = 0; updateStatsView(); }
+    function applyStreakChange(delta, reset) {
+      if (reset) { stats.winStreak = 0; }
+      else stats.winStreak = Math.max(0, stats.winStreak + delta);
+      stats.bestStreak = Math.max(stats.bestStreak, stats.winStreak);
+      updateStatsView();
+    }
 
-    // 20%でイベント発生→イベント内抽選
     function selectEvent() {
       const globalRoll = Math.random();
       if (globalRoll >= 0.2) {
@@ -482,7 +549,7 @@
       currentEvent = picked;
       eventMultiplier = picked.baseMultiplier || 1;
       applyEventVisuals(picked.key);
-      showEventPopup(picked);
+      if (picked.key !== "none") showEventPopup(picked);
     }
     function showEventPopup(ev) {
       eventNameEl.textContent = ev.name;
@@ -544,19 +611,13 @@
           break;
         case "none":
         default:
-          multiplier = 1;
           ({ delta: streakDelta, reset: resetStreak } = baseStreakRule(triesCount));
+          multiplier = 1;
           break;
       }
       return { multiplier, streakDelta, resetStreak };
     }
 
-    function resetStreak() { stats.winStreak = 0; }
-    function applyStreakChange(delta, resetFlag) {
-      if (resetFlag) stats.winStreak = 0;
-      else stats.winStreak = Math.max(0, stats.winStreak + delta);
-      stats.bestStreak = Math.max(stats.bestStreak, stats.winStreak);
-    }
     function getComboPercent() { return Math.min(stats.winStreak * 10, 200); }
 
     function shakeSlots() { slotsContainer.classList.add("shake"); setTimeout(() => slotsContainer.classList.remove("shake"), 220); }
@@ -605,10 +666,12 @@
       if (fromIndex === toIndex) return;
       const fromVal = slotValues[fromIndex];
       const toVal = slotValues[toIndex];
-      if (fromVal == null) return;
-      if (toIndex === 0 && fromVal === "0") { messageEl.textContent = "先頭は0以外にしてね。"; shakeSlots(); return; }
-      slotValues[fromIndex] = toVal;
-      slotValues[toIndex] = fromVal;
+      if (fromVal === null) return;
+      if (toVal === null) slotValues[toIndex] = fromVal, slotValues[fromIndex] = null;
+      else {
+        slotValues[fromIndex] = toVal;
+        slotValues[toIndex] = fromVal;
+      }
       messageEl.textContent = "";
       updateSlotsView();
       popSlot(fromIndex);
@@ -618,7 +681,7 @@
     function randomColor() { const colors = ["#f97316","#22c55e","#3b82f6","#eab308","#ec4899","#a855f7"]; return colors[Math.floor(Math.random() * colors.length)]; }
     function createConfettiPieces() {
       const old = celebrationEl.querySelectorAll(".confetti"); old.forEach(el => el.remove());
-      const count = 40;
+      const count = 50;
       for (let i = 0; i < count; i++) {
         const piece = document.createElement("div");
         piece.className = "confetti";
@@ -681,6 +744,7 @@
       messageEl.textContent = "";
       logEl.innerHTML = "";
       statusText.textContent = "ゲーム開始！3桁の数字を当ててみてね。";
+      statusText.style.color = "#a5b4fc";
       selectEvent();
       stats.totalGames += 1;
       saveStats();
@@ -750,30 +814,35 @@
 
         applyStreakChange(streakDelta, streakReset);
 
-        statusText.textContent = `🎉 正解！答えは ${answer} でした。（${tries}回でクリア）`;
+        statusText.textContent = `🎉 正解！答えは ${answer} でした。 ${tries}回でクリア！`;
+        statusText.style.color = "#fbbf24";
         stats.clears += 1;
         stats.totalTriesOnClear += tries;
         if (stats.bestTries === null || tries < stats.bestTries) stats.bestTries = tries;
 
+        const bestUpdated = stats.bestScore == null || finalScore > stats.bestScore;
         stats.totalXp = prevXp + finalScore;
-        if (stats.bestScore == null || finalScore > stats.bestScore) stats.bestScore = finalScore;
+        if (bestUpdated) stats.bestScore = finalScore;
 
         const newLevel = calcLevel(stats.totalXp);
         saveStats();
         updateStatsView();
         animateXpGain(prevXp, stats.totalXp);
 
+        // イベント演出
         if (currentEvent.key === "meteor") playMeteorEffect();
         if (currentEvent.key === "burst") playBurstEffect();
         if (currentEvent.key === "dice") playDiceRoll(multiplier);
 
         showCelebration(tries, finalScore, prevLevel, newLevel);
+        showScoreCard(baseScore, comboPercent, multiplier, finalScore, bestUpdated);
 
-        addLog(`<strong>Score</strong> ▶ base ${baseScore} → 連勝+${comboPercent}% = ${scoreAfterCombo} → イベント x${multiplier} = <strong>${finalScore}</strong>`, hit);
+        addLog(`<strong>Score</strong> ▶ base ${baseScore} ＋連勝${comboPercent}% = ${scoreAfterCombo} ＋イベントx${multiplier} = <strong>${finalScore}</strong>`, hit);
         endGame();
         setTimeout(startGame, 2400);
       } else {
-        statusText.textContent = `ヒット: ${hit}, ブロー: ${blow}（${tries}回目）`;
+        statusText.textContent = `ヒット ${hit}, ブロー: ${blow}（${tries}回目）`;
+        statusText.style.color = "#f97316";
       }
     }
 
@@ -977,8 +1046,9 @@
 
     giveupBtn.addEventListener("click", () => {
       if (!gameActive) return;
-      statusText.textContent = `ギブアップ！答えは ${answer} でした。`;
+      statusText.textContent = `ギブアップ… 答えは ${answer} でした。`;
       statusText.classList.add("status-sad");
+      statusText.style.color = "#f97316";
       document.body.classList.add("giveup-flash");
       addLog(`<strong>ギブアップ</strong> ▶ 答え: <strong>${answer}</strong>`);
       setTimeout(() => { statusText.classList.remove("status-sad"); document.body.classList.remove("giveup-flash"); }, 450);
