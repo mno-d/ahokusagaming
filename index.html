@@ -53,7 +53,7 @@
       background: #3b82f6;
       color: white;
       white-space: nowrap;
-      transition: transform 0.1s ease, box-shadow 0.1s ease, background 0.2s ease, opacity 0.2s ease;
+      transition: transform 0.1s ease, box-shadow 0.1s ease, background 0.2s ease, opacity 0.2s.ease;
     }
 
     button.secondary {
@@ -417,7 +417,54 @@
 
     body.giveup-flash {
       filter: brightness(0.7);
-      transition: filter 0.3s ease;
+      transition: filter 0.3s.ease;
+    }
+
+    /* ▼ 遊び方ボタン＆パネル ▼ */
+    .howto-bar {
+      margin-top: 4px;
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .howto-label {
+      font-size: 0.8rem;
+      color: #9ca3af;
+    }
+
+    .howto-btn {
+      padding: 6px 10px;
+      font-size: 0.8rem;
+      border-radius: 999px;
+    }
+
+    .howto-panel {
+      margin-top: 4px;
+      padding: 8px 10px;
+      border-radius: 8px;
+      background: #111827;
+      border: 1px solid #374151;
+      font-size: 0.8rem;
+      display: none;
+    }
+
+    .howto-panel.open {
+      display: block;
+    }
+
+    .howto-panel strong {
+      color: #e5e7eb;
+    }
+
+    .howto-example {
+      margin-top: 4px;
+      padding: 6px 8px;
+      border-radius: 6px;
+      background: #020617;
+      border: 1px dashed #4b5563;
     }
   </style>
 </head>
@@ -430,6 +477,25 @@
       ・先頭は <strong>0になりません</strong><br />
       例：123, 947 など
     </p>
+
+    <!-- ▼ 遊び方ボタン＆開閉ルール ▼ -->
+    <div class="howto-bar">
+      <div class="howto-label">ヒット＆ブローが初めての人へ</div>
+      <button id="howtoBtn" class="secondary howto-btn">遊び方</button>
+    </div>
+    <div id="howtoPanel" class="howto-panel">
+      <div>
+        <strong>一言でいうと</strong><br>
+        3桁の秘密の数字を、ヒントの「ヒット」と「ブロー」を手がかりに当てるゲームです。
+      </div>
+      <div class="howto-example">
+        <strong>例</strong><br>
+        正解：<strong>427</strong><br>
+        入力：<strong>472</strong> → 0ヒット / 2ブロー<br>
+        入力：<strong>407</strong> → 1ヒット / 1ブロー
+      </div>
+    </div>
+    <!-- ▲ 遊び方ここまで ▲ -->
 
     <div class="status" id="statusText">
       数字を選んでみてね。
@@ -540,6 +606,9 @@
     const celebrationEl = document.getElementById("celebration");
     const celebrationTextEl = document.getElementById("celebrationText");
     const celebrationSubEl = document.getElementById("celebrationSub");
+
+    const howtoBtn = document.getElementById("howtoBtn");
+    const howtoPanel = document.getElementById("howtoPanel");
 
     let touchDraggingDigit = null;
     let dragGhost = null;
@@ -1146,6 +1215,14 @@
       saveStats();
       updateStatsView();
     });
+
+    // 遊び方の開閉
+    if (howtoBtn && howtoPanel) {
+      howtoBtn.addEventListener("click", () => {
+        const open = howtoPanel.classList.toggle("open");
+        howtoBtn.textContent = open ? "遊び方を閉じる" : "遊び方";
+      });
+    }
 
     loadStats();
     updateStatsView();
