@@ -2,705 +2,254 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
-  <title>ヒット＆ブロー 3桁ゲーム（オンライン記録版）</title>
+  <title>ヒット＆ブロー 3桁ゲーム | オンライン記録版</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
-    body {
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-      margin: 0;
-      padding: 16px;
-      background: #111;
-      color: #f5f5f5;
-      transition: filter 0.2s ease, background 0.2s ease;
+    :root {
+      --bg:#111;
+      --card:#1e1e1e;
+      --text:#f5f5f5;
+      --muted:#9ca3af;
+      --accent:#3b82f6;
+      --accent-2:#22c55e;
+      --danger:#ef4444;
     }
+    * { box-sizing:border-box; }
+    body {
+      font-family: system-ui,-apple-system,BlinkMacSystemFont,sans-serif;
+      margin:0; padding:16px;
+      background:var(--bg); color:var(--text);
+      transition:filter .2s ease, background .3s ease;
+      min-height:100vh;
+    }
+    body.rainbow-mode {
+      background: linear-gradient(120deg,#ff0080,#ff8c00,#40e0d0,#4f46e5,#ff0080);
+      background-size:400% 400%;
+      animation: rainbowFlow 12s ease infinite;
+    }
+    @keyframes rainbowFlow {0%{background-position:0% 50%;}50%{background-position:100% 50%;}100%{background-position:0% 50%;}}
+    body.space-mode {
+      background: radial-gradient(circle at 20% 20%,rgba(99,102,241,0.25),transparent 40%),
+                  radial-gradient(circle at 80% 30%,rgba(56,189,248,0.25),transparent 38%),
+                  radial-gradient(circle at 40% 80%,rgba(167,139,250,0.2),transparent 38%),
+                  #030712;
+      position:relative;
+      overflow:hidden;
+    }
+    body.space-mode::before {
+      content:"";
+      position:fixed; inset:0;
+      background-image:
+        radial-gradient(2px 2px at 10% 20%, rgba(255,255,255,0.6), transparent),
+        radial-gradient(1.5px 1.5px at 30% 50%, rgba(255,255,255,0.5), transparent),
+        radial-gradient(1.2px 1.2px at 70% 70%, rgba(255,255,255,0.5), transparent),
+        radial-gradient(1.8px 1.8px at 50% 30%, rgba(255,255,255,0.6), transparent);
+      background-repeat: repeat;
+      opacity:0.8;
+      pointer-events:none;
+      animation: starDrift 18s linear infinite;
+    }
+    @keyframes starDrift {from{background-position:0 0;} to{background-position:120px 220px;}}
+    body.burst-flash { animation: burstFlash .4s ease; }
+    @keyframes burstFlash {0%{filter:brightness(2);}100%{filter:brightness(1);} }
 
     .container {
-      max-width: 480px;
-      margin: 0 auto;
-      padding: 16px;
-      background: #1e1e1e;
-      border-radius: 12px;
-      box-shadow: 0 0 16px rgba(0,0,0,0.4);
-      transition: transform 0.2s ease;
+      max-width:480px; margin:0 auto; padding:16px;
+      background:var(--card); border-radius:12px;
+      box-shadow:0 0 16px rgba(0,0,0,0.4);
+      transition:transform .2s ease;
+      position:relative;
+      z-index:2;
     }
-
-    h1 {
-      text-align: center;
-      font-size: 1.4rem;
-      margin-top: 0;
-    }
-
-    p {
-      line-height: 1.5;
-      font-size: 0.9rem;
-    }
-
+    h1 { text-align:center; font-size:1.4rem; margin:0 0 8px; }
+    p { line-height:1.5; font-size:0.9rem; }
     button {
-      padding: 10px 14px;
-      border-radius: 8px;
-      border: none;
-      font-size: 0.95rem;
-      font-weight: 600;
-      cursor: pointer;
-      background: #3b82f6;
-      color: white;
-      white-space: nowrap;
-      transition: transform 0.1s ease, box-shadow 0.1s ease, background 0.2s ease, opacity 0.2s ease;
+      padding:10px 14px; border-radius:8px; border:none;
+      font-size:0.95rem; font-weight:600; cursor:pointer;
+      background:var(--accent); color:#fff; white-space:nowrap;
+      transition:transform .1s ease, box-shadow .1s ease, background .2s ease, opacity .2s ease;
     }
+    button.secondary { background:#4b5563; }
+    button:disabled { opacity:.5; cursor:default; box-shadow:none; }
+    .btn-pop { animation: btnPop .18s ease-out; }
+    @keyframes btnPop {0%{transform:scale(1);}50%{transform:scale(1.07);}100%{transform:scale(1);} }
 
-    button.secondary {
-      background: #4b5563;
-    }
-
-    button:disabled {
-      opacity: 0.5;
-      cursor: default;
-      box-shadow: none;
-    }
-
-    .btn-pop {
-      animation: btnPop 0.18s ease-out;
-    }
-
-    @keyframes btnPop {
-      0%   { transform: scale(1); }
-      50%  { transform: scale(1.07); }
-      100% { transform: scale(1); }
-    }
-
-    .input-row {
-      display: flex;
-      gap: 8px;
-      margin-top: 12px;
-      margin-bottom: 8px;
-      align-items: center;
-    }
-
-    .message {
-      min-height: 1.4em;
-      font-size: 0.9rem;
-      margin-bottom: 8px;
-      color: #f97316;
-      transition: opacity 0.15s ease;
-    }
-
-    .log {
-      margin-top: 12px;
-      border-top: 1px solid #374151;
-      padding-top: 8px;
-      font-size: 0.9rem;
-    }
-
+    .input-row { display:flex; gap:8px; margin:12px 0 8px; align-items:center; }
+    .message { min-height:1.4em; font-size:0.9rem; margin-bottom:8px; color:#f97316; transition:opacity .15s ease; }
+    .log { margin-top:12px; border-top:1px solid #374151; padding-top:8px; font-size:0.9rem; }
     .log-entry {
-      padding: 6px 8px;
-      border-radius: 6px;
-      margin-bottom: 4px;
-      background: #111827;
-      border-left: 3px solid transparent;
-      animation: logDrop 0.22s ease-out;
-      transform-origin: top;
+      padding:6px 8px; border-radius:6px; margin-bottom:4px;
+      background:#111827; border-left:3px solid transparent;
+      animation: logDrop .22s ease-out; transform-origin:top;
     }
+    .log-entry strong { color:#e5e7eb; }
+    .log-entry.hit-0 { background:#020617; border-left-color:#4b5563; }
+    .log-entry.hit-1 { background:#0f172a; border-left-color:#3b82f6; }
+    .log-entry.hit-2 { background:#1f2937; border-left-color:#eab308; }
+    @keyframes logDrop {0%{opacity:0; transform:translateY(-6px) scale(.98);}100%{opacity:1; transform:translateY(0) scale(1);} }
 
-    .log-entry strong {
-      color: #e5e7eb;
-    }
+    .small { font-size:0.8rem; color:var(--muted); }
+    .status { margin-top:8px; font-size:0.9rem; color:#a5b4fc; transition:transform .15s ease, color .2s ease; }
+    .status-sad { animation: statusShake .4s ease; color:#f97316; }
+    @keyframes statusShake {0%,100%{transform:translateX(0);}25%{transform:translateX(-3px);}75%{transform:translateX(3px);} }
 
-    .log-entry.hit-0 {
-      background: #020617;
-      border-left-color: #4b5563;
-    }
-    .log-entry.hit-1 {
-      background: #0f172a;
-      border-left-color: #3b82f6;
-    }
-    .log-entry.hit-2 {
-      background: #1f2937;
-      border-left-color: #eab308;
-    }
-
-    @keyframes logDrop {
-      0%   { opacity: 0; transform: translateY(-6px) scale(0.98); }
-      100% { opacity: 1; transform: translateY(0) scale(1); }
-    }
-
-    .small {
-      font-size: 0.8rem;
-      color: #9ca3af;
-    }
-
-    .status {
-      margin-top: 8px;
-      font-size: 0.9rem;
-      color: #a5b4fc;
-      transition: transform 0.15s ease, color 0.2s ease;
-    }
-
-    .status-sad {
-      animation: statusShake 0.4s ease;
-      color: #f97316;
-    }
-
-    @keyframes statusShake {
-      0%,100% { transform: translateX(0); }
-      25% { transform: translateX(-3px); }
-      75% { transform: translateX(3px); }
-    }
-
-    .slots {
-      display: flex;
-      gap: 8px;
-      transition: transform 0.15s ease;
-    }
-
-    .slots.shake {
-      animation: slotsShake 0.2s ease;
-    }
-
-    @keyframes slotsShake {
-      0% { transform: translateX(0); }
-      25% { transform: translateX(-4px); }
-      50% { transform: translateX(4px); }
-      75% { transform: translateX(-2px); }
-      100% { transform: translateX(0); }
-    }
-
-    .slots.slots-ready {
-      animation: slotsReady 0.25s.ease-out;
-    }
-
-    @keyframes slotsReady {
-      0%   { transform: scale(1); }
-      50%  { transform: scale(1.03); }
-      100% { transform: scale(1); }
-    }
+    .slots { display:flex; gap:8px; transition:transform .15s ease; }
+    .slots.shake { animation: slotsShake .2s ease; }
+    @keyframes slotsShake {0%{transform:translateX(0);}25%{transform:translateX(-4px);}50%{transform:translateX(4px);}75%{transform:translateX(-2px);}100%{transform:translateX(0);} }
+    .slots.slots-ready { animation: slotsReady .25s ease-out; }
+    @keyframes slotsReady {0%{transform:scale(1);}50%{transform:scale(1.03);}100%{transform:scale(1);} }
 
     .slot {
-      width: 56px;
-      height: 56px;
-      border-radius: 12px;
-      background: #020617;
-      border: 2px solid #4b5563;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.6rem;
-      font-weight: 700;
-      color: #e5e7eb;
-      user-select: none;
-      touch-action: manipulation;
-      transition: border-color 0.15s ease, box-shadow 0.15s.ease, background 0.15s.ease, transform 0.1s ease;
+      width:56px; height:56px; border-radius:12px; background:#020617;
+      border:2px solid #4b5563; display:flex; align-items:center; justify-content:center;
+      font-size:1.6rem; font-weight:700; color:#e5e7eb; user-select:none; touch-action:manipulation;
+      transition:border-color .15s ease, box-shadow .15s ease, background .15s ease, transform .1s ease;
     }
+    .slot.empty { color:#4b5563; font-size:1.2rem; }
+    .slot.highlight { border-color:#f97316; animation: slotPulse .5s ease-out infinite; }
+    @keyframes slotPulse {0%{box-shadow:0 0 0 0 rgba(249,115,22,0.5);}100%{box-shadow:0 0 0 8px rgba(249,115,22,0);} }
+    .slot-pop { animation: slotPop .18s ease-out; }
+    @keyframes slotPop {0%{transform:scale(0.9);}60%{transform:scale(1.08);}100%{transform:scale(1);} }
 
-    .slot.empty {
-      color: #4b5563;
-      font-size: 1.2rem;
-    }
-
-    .slot.highlight {
-      border-color: #f97316;
-      animation: slotPulse 0.5s ease-out infinite;
-    }
-
-    @keyframes slotPulse {
-      0%   { box-shadow: 0 0 0 0 rgba(249,115,22,0.5); }
-      100% { box-shadow: 0 0 0 8px rgba(249,115,22,0); }
-    }
-
-    .slot-pop {
-      animation: slotPop 0.18s ease-out;
-    }
-
-    @keyframes slotPop {
-      0%   { transform: scale(0.9); }
-      60%  { transform: scale(1.08); }
-      100% { transform: scale(1); }
-    }
-
-    .digit-pad {
-      margin-top: 8px;
-      display: grid;
-      grid-template-columns: repeat(5, minmax(0, 1fr));
-      gap: 8px;
-    }
-
+    .digit-pad { margin-top:8px; display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:8px; }
     .digit {
-      padding: 10px 0;
-      border-radius: 999px;
-      background: #374151;
-      color: #f9fafb;
-      font-size: 1.1rem;
-      border: none;
-      font-weight: 600;
-      text-align: center;
-      cursor: pointer;
-      user-select: none;
-      touch-action: manipulation;
-      position: relative;
-      overflow: hidden;
+      padding:10px 0; border-radius:999px; background:#374151; color:#f9fafb;
+      font-size:1.1rem; border:none; font-weight:600; text-align:center;
+      cursor:pointer; user-select:none; touch-action:manipulation; position:relative; overflow:hidden;
     }
+    .digit.used { opacity:.35; }
+    .digit:active { transform:translateY(1px) scale(.98); }
+    .digit.flash { box-shadow:0 0 10px rgba(255,255,255,0.7); transform:scale(1.05); }
 
-    .digit.used {
-      opacity: 0.35;
-    }
+    .stats { margin-top:16px; padding:10px 12px; border-radius:10px; background:#111827; border:1px solid #374151; font-size:0.85rem; }
+    .stats-title { font-size:0.9rem; margin-bottom:4px; color:#e5e7eb; font-weight:600; }
+    .stats-row { display:flex; justify-content:space-between; margin-bottom:2px; }
+    .stats-label { color:var(--muted); }
+    .stats-value { color:#f9fafb; font-weight:700; }
+    .stats.glow { animation: statsGlow .9s ease-out; box-shadow:0 0 18px rgba(129,140,248,0.8); }
+    @keyframes statsGlow {0%{box-shadow:0 0 0 rgba(0,0,0,0);}40%{box-shadow:0 0 18px rgba(129,140,248,0.8);}100%{box-shadow:0 0 0 rgba(0,0,0,0);} }
 
-    .digit:active {
-      transform: translateY(1px) scale(0.98);
-    }
+    .xp-bar-container { width:100%; height:8px; background:#020617; border-radius:999px; overflow:hidden; margin:4px 0 6px; border:1px solid #374151; }
+    .xp-bar-fill { height:100%; width:0%; background:linear-gradient(90deg,#4ade80,#22c55e,#a855f7); transition:width .4s ease-out; }
+    .xp-bar-fill.pulse { animation: xpPulse .8s ease-out; }
+    @keyframes xpPulse {0%{box-shadow:0 0 0 0 rgba(52,211,153,0.7);}100%{box-shadow:0 0 0 14px rgba(52,211,153,0);} }
+    .stats-value.level-text.level-pop { animation: levelPop .6s ease-out; }
+    @keyframes levelPop {0%{transform:scale(1);}40%{transform:scale(1.2);}100%{transform:scale(1);} }
 
-    .digit.flash {
-      box-shadow: 0 0 10px rgba(255,255,255,0.7);
-      transform: scale(1.05);
+    .howto-bar { margin:4px 0; display:flex; align-items:center; justify-content:space-between; gap:8px; }
+    .howto-label { font-size:0.8rem; color:var(--muted); }
+    .howto-btn { padding:6px 10px; font-size:0.8rem; border-radius:999px; }
+    .howto-modal-overlay {
+      position:fixed; inset:0; background:rgba(15,23,42,0.92);
+      display:none; align-items:center; justify-content:center; z-index:900;
     }
+    .howto-modal-overlay.show { display:flex; }
+    .howto-modal {
+      width:min(480px,92vw); max-height:80vh; background:#020617;
+      border-radius:16px; border:1px solid #4b5563; padding:14px 14px 16px;
+      box-shadow:0 20px 40px rgba(0,0,0,0.75); display:flex; flex-direction:column;
+    }
+    .howto-modal-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; }
+    .howto-modal-title { display:flex; align-items:center; gap:8px; font-size:1rem; font-weight:700; color:#e5e7eb; }
+    .howto-close-btn { padding:4px 8px; border-radius:999px; background:#374151; color:#e5e7eb; border:none; font-size:0.8rem; cursor:pointer; }
+    .howto-modal-body { margin-top:4px; padding-top:4px; border-top:1px solid #1f2937; overflow-y:auto; font-size:0.85rem; color:#d1d5db; }
+    .howto-section { margin-bottom:10px; }
+    .howto-section h3 { display:flex; align-items:center; gap:6px; font-size:0.9rem; margin:4px 0; color:#e5e7eb; }
+    .howto-section-index { display:inline-flex; align-items:center; justify-content:center; width:18px; height:18px; border-radius:999px; background:#4b5563; color:#f9fafb; font-size:0.7rem; font-weight:700; }
+    .howto-section ul { padding-left:1.1rem; margin:2px 0; }
+    .howto-section li { margin-bottom:2px; }
+    .howto-sub { margin-top:3px; padding:4px 6px; border-radius:6px; background:#020617; border:1px dashed #374151; font-size:0.78rem; }
+    .howto-section code { font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; background:#020617; padding:1px 4px; border-radius:4px; font-size:0.75rem; }
 
-    .stats {
-      margin-top: 16px;
-      padding: 10px 12px;
-      border-radius: 10px;
-      background: #111827;
-      border: 1px solid #374151;
-      font-size: 0.85rem;
+    .auth-panel { margin-bottom:12px; padding:10px 12px; border-radius:10px; background:#111827; border:1px solid #374151; font-size:0.85rem; }
+    .auth-status { margin-bottom:6px; color:#e5e7eb; }
+    .auth-forms { display:flex; flex-direction:column; gap:6px; }
+    .auth-forms input {
+      width:100%; box-sizing:border-box; padding:8px 10px; border-radius:8px;
+      border:1px solid #4b5563; background:#020617; color:#e5e7eb; font-size:0.85rem;
     }
-
-    .stats-title {
-      font-size: 0.9rem;
-      margin-bottom: 4px;
-      color: #e5e7eb;
-      font-weight: 600;
-    }
-
-    .stats-row {
-      display: flex;
-      justify-content: space-between;
-      margin-bottom: 2px;
-    }
-
-    .stats-label {
-      color: #9ca3af;
-    }
-
-    .stats-value {
-      color: #f9fafb;
-      font-weight: 600;
-    }
+    .auth-buttons { display:flex; gap:8px; margin-top:4px; }
+    .loggedin { display:none; align-items:center; justify-content:space-between; gap:8px; margin-top:4px; font-size:0.85rem; }
+    .loggedin-name { font-weight:600; color:#a5b4fc; }
 
     .celebration {
-      position: fixed;
-      inset: 0;
-      background: radial-gradient(circle at center, rgba(255,255,255,0.18), rgba(0,0,0,0.9));
-      display: none;
-      align-items: center;
-      justify-content: center;
-      z-index: 999;
-      animation: fadeIn 0.25s ease-out;
-      overflow: hidden;
+      position:fixed; inset:0; background:radial-gradient(circle at center, rgba(255,255,255,0.18), rgba(0,0,0,0.9));
+      display:none; align-items:center; justify-content:center; z-index:999; animation: fadeIn .25s ease-out; overflow:hidden;
     }
-
-    .celebration.show {
-      display: flex;
-    }
-
-    .celebration-content {
-      text-align: center;
-      animation: popIn 0.4s ease-out;
-      position: relative;
-      z-index: 2;
-    }
-
-    .celebration-emoji {
-      font-size: 3.5rem;
-      margin-bottom: 8px;
-      animation: bounce 0.8s ease-out infinite;
-    }
-
-    .celebration-text {
-      font-size: 1.6rem;
-      font-weight: 800;
-      letter-spacing: 0.08em;
-      margin-bottom: 4px;
-      text-shadow: 0 0 8px rgba(255,255,255,0.4);
-    }
-
-    .celebration-sub {
-      font-size: 1rem;
-      color: #e5e7eb;
-      margin-bottom: 12px;
-    }
-
-    .celebration-note {
-      font-size: 0.8rem;
-      color: #9ca3af;
-    }
-
-    .confetti {
-      position: absolute;
-      border-radius: 2px;
-      opacity: 0.9;
-      animation: confettiFall 1.8s linear forwards;
-      z-index: 1;
-    }
-
-    .wave {
-      position: absolute;
-      border-radius: 999px;
-      border: 2px solid rgba(255,255,255,0.6);
-      left: 50%;
-      top: 50%;
-      transform: translate(-50%, -50%);
-      width: 0;
-      height: 0;
-      opacity: 0.8;
-      animation: waveOut 0.9s ease-out forwards;
-      z-index: 0;
-    }
-
-    @keyframes waveOut {
-      0% {
-        width: 0;
-        height: 0;
-        opacity: 0.8;
-      }
-      100% {
-        width: 260px;
-        height: 260px;
-        opacity: 0;
-      }
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
-    }
-
-    @keyframes popIn {
-      0% { transform: scale(0.6); opacity: 0; }
-      60% { transform: scale(1.05); opacity: 1; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    @keyframes bounce {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-6px); }
-    }
-
-    @keyframes confettiFall {
-      0% {
-        transform: translateY(-20vh) rotate(0deg);
-      }
-      100% {
-        transform: translateY(110vh) rotate(360deg);
-        opacity: 0;
-      }
-    }
+    .celebration.show { display:flex; }
+    .celebration-content { text-align:center; animation: popIn .4s ease-out; position:relative; z-index:2; }
+    .celebration-emoji { font-size:3.5rem; margin-bottom:8px; animation:bounce .8s ease-out infinite; }
+    .celebration-text { font-size:1.6rem; font-weight:800; letter-spacing:0.08em; margin-bottom:4px; text-shadow:0 0 8px rgba(255,255,255,0.4); }
+    .celebration-sub { font-size:1rem; color:#e5e7eb; margin-bottom:12px; }
+    .celebration-note { font-size:0.8rem; color:var(--muted); }
+    .confetti { position:absolute; border-radius:2px; opacity:0.9; animation: confettiFall 1.8s linear forwards; z-index:1; }
+    .wave { position:absolute; border-radius:999px; border:2px solid rgba(255,255,255,0.6); left:50%; top:50%; transform:translate(-50%,-50%); width:0; height:0; opacity:0.8; animation: waveOut 0.9s ease-out forwards; z-index:0; }
+    @keyframes waveOut {0%{width:0;height:0;opacity:0.8;}100%{width:260px;height:260px;opacity:0;} }
+    @keyframes fadeIn {from{opacity:0;}to{opacity:1;} }
+    @keyframes popIn {0%{transform:scale(0.6);opacity:0;}60%{transform:scale(1.05);opacity:1;}100%{transform:scale(1);opacity:1;} }
+    @keyframes bounce {0%,100%{transform:translateY(0);}50%{transform:translateY(-6px);} }
+    @keyframes confettiFall {0%{transform:translateY(-20vh) rotate(0deg);}100%{transform:translateY(110vh) rotate(360deg);opacity:0;} }
 
     .drag-ghost {
-      position: fixed;
-      width: 40px;
-      height: 40px;
-      border-radius: 999px;
-      background: #f97316;
-      color: #fff;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 700;
-      pointer-events: none;
-      z-index: 9999;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.5);
-      transform: translate(-50%, -50%);
-      animation: ghostPop 0.12s ease-out;
+      position:fixed; width:40px; height:40px; border-radius:999px; background:#f97316; color:#fff;
+      display:flex; align-items:center; justify-content:center; font-weight:700; pointer-events:none;
+      z-index:9999; box-shadow:0 4px 10px rgba(0,0,0,0.5); transform:translate(-50%,-50%); animation: ghostPop .12s ease-out;
+    }
+    @keyframes ghostPop {0%{transform:translate(-50%,-50%) scale(0.8);}100%{transform:translate(-50%,-50%) scale(1);} }
+
+    .event-overlay {
+      position:fixed; inset:0; background:rgba(0,0,0,0.3);
+      display:none; align-items:center; justify-content:center;
+      z-index:950; opacity:0; transition:opacity .35s ease;
+    }
+    .event-overlay.show { display:flex; opacity:1; }
+    .event-card {
+      background:#fff; color:#0f172a; border-radius:14px;
+      padding:18px 20px 14px; width:min(360px,90vw);
+      box-shadow:0 20px 50px rgba(0,0,0,0.35);
+      text-align:center; animation: popIn .35s ease; position:relative;
+    }
+    .event-name { font-size:1.2rem; font-weight:800; margin-bottom:6px; }
+    .event-desc { font-size:0.95rem; color:#334155; }
+    .event-tag { display:inline-flex; padding:4px 10px; border-radius:999px; background:#e0f2fe; color:#0ea5e9; font-weight:700; font-size:0.85rem; margin-bottom:6px; }
+    .event-close {
+      position:absolute; right:12px; top:10px; border:none; background:#e2e8f0; color:#0f172a;
+      border-radius:999px; padding:4px 10px; font-weight:700; cursor:pointer; font-size:0.8rem;
     }
 
-    @keyframes ghostPop {
-      0%   { transform: translate(-50%, -50%) scale(0.8); }
-      100% { transform: translate(-50%, -50%) scale(1); }
+    #effectLayer { position:fixed; inset:0; pointer-events:none; z-index:940; overflow:hidden; }
+    .meteor {
+      position:absolute; width:22px; height:22px; background:linear-gradient(135deg,#f97316,#facc15);
+      border-radius:50% 40% 60% 40%; box-shadow:0 0 14px rgba(250,204,21,0.8);
+      transform:rotate(35deg); animation: meteorDrop .9s ease-out forwards;
     }
-
-    body.giveup-flash {
-      filter: brightness(0.7);
-      transition: filter 0.3s ease;
+    @keyframes meteorDrop {from{transform:translate(-30vw,-20vh) rotate(25deg);}to{transform:translate(140vw,120vh) rotate(160deg);} }
+    .explosion {
+      position:absolute; width:120px; height:120px; background:radial-gradient(circle, rgba(255,255,255,0.9) 0%, rgba(255,68,68,0.6) 45%, rgba(255,255,255,0) 70%);
+      opacity:0.9; animation: explodeFade .6s ease-out forwards; mix-blend-mode:screen;
     }
+    @keyframes explodeFade {from{transform:scale(0.4);}to{transform:scale(1.3); opacity:0;} }
 
-    /* ▼ 遊び方ボタン＆パネル ▼ */
-    .howto-bar {
-      margin-top: 4px;
-      margin-bottom: 4px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 8px;
+    .dice {
+      position:absolute; width:64px; height:64px; background:#fff; color:#0f172a; border-radius:10px;
+      display:flex; align-items:center; justify-content:center; font-size:1.6rem; font-weight:800;
+      box-shadow:0 12px 30px rgba(0,0,0,0.35); animation:diceRoll 0.9s ease-out forwards;
     }
+    @keyframes diceRoll {0%{transform:translate(-50%,-50%) rotate(-20deg) scale(0.7); opacity:0;}60%{opacity:1;}100%{transform:translate(-50%,-50%) rotate(8deg) scale(1);} }
 
-    .howto-label {
-      font-size: 0.8rem;
-      color: #9ca3af;
+    .rainbow-shine {
+      position:fixed; inset:0; pointer-events:none; background:linear-gradient(120deg,rgba(255,255,255,0.05),rgba(255,255,255,0));
+      animation: rainbowShine 4s ease-in-out infinite; z-index:1;
     }
+    @keyframes rainbowShine {0%{opacity:0;}50%{opacity:0.2;}100%{opacity:0;} }
 
-    .howto-btn {
-      padding: 6px 10px;
-      font-size: 0.8rem;
-      border-radius: 999px;
-    }
-
-    .howto-panel {
-      margin-top: 4px;
-      padding: 8px 10px;
-      border-radius: 8px;
-      background: #111827;
-      border: 1px solid #374151;
-      font-size: 0.8rem;
-      display: none;
-    }
-
-    .howto-panel.open {
-      display: block;
-    }
-
-    .howto-panel strong {
-      color: #e5e7eb;
-    }
-
-    .howto-example {
-      margin-top: 4px;
-      padding: 6px 8px;
-      border-radius: 6px;
-      background: #020617;
-      border: 1px dashed #4b5563;
-    }
-
-    /* ▼ 認証UI ▼ */
-
-    .auth-panel {
-      margin-bottom: 12px;
-      padding: 10px 12px;
-      border-radius: 10px;
-      background: #111827;
-      border: 1px solid #374151;
-      font-size: 0.85rem;
-    }
-
-    .auth-status {
-      margin-bottom: 6px;
-      color: #e5e7eb;
-    }
-
-    .auth-forms {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-
-    .auth-forms input {
-      width: 100%;
-      box-sizing: border-box;
-      padding: 8px 10px;
-      border-radius: 8px;
-      border: 1px solid #4b5563;
-      background: #020617;
-      color: #e5e7eb;
-      font-size: 0.85rem;
-    }
-
-    .auth-buttons {
-      display: flex;
-      gap: 8px;
-      margin-top: 4px;
-    }
-
-    .loggedin {
-      display: none;
-      align-items: center;
-      justify-content: space-between;
-      gap: 8px;
-      margin-top: 4px;
-      font-size: 0.85rem;
-    }
-
-    .loggedin-name {
-      font-weight: 600;
-      color: #a5b4fc;
-    }
-  
-    /* ▼ XPバー & レベル演出 ▼ */
-    .stats.glow {
-      animation: statsGlow 0.9s ease-out;
-      box-shadow: 0 0 18px rgba(129,140,248,0.8);
-    }
-
-    @keyframes statsGlow {
-      0% { box-shadow: 0 0 0 rgba(0,0,0,0); }
-      40% { box-shadow: 0 0 18px rgba(129,140,248,0.8); }
-      100% { box-shadow: 0 0 0 rgba(0,0,0,0); }
-    }
-
-    .xp-bar-container {
-      width: 100%;
-      height: 8px;
-      background: #020617;
-      border-radius: 999px;
-      overflow: hidden;
-      margin: 4px 0 6px;
-      border: 1px solid #374151;
-    }
-
-    .xp-bar-fill {
-      height: 100%;
-      width: 0%;
-      background: linear-gradient(90deg, #4ade80, #22c55e, #a855f7);
-      transition: width 0.4s ease-out;
-    }
-
-    .xp-bar-fill.pulse {
-      animation: xpPulse 0.8s ease-out;
-    }
-
-    @keyframes xpPulse {
-      0% { box-shadow: 0 0 0 0 rgba(52,211,153,0.7); }
-      100% { box-shadow: 0 0 0 14px rgba(52,211,153,0); }
-    }
-
-    .stats-value.level-text.level-pop {
-      animation: levelPop 0.6s ease-out;
-    }
-
-    @keyframes levelPop {
-      0% { transform: scale(1); }
-      40% { transform: scale(1.2); }
-      100% { transform: scale(1); }
-    }
-
-
-    /* ▼ 遊び方モーダル ▼ */
-    .howto-modal-overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(15,23,42,0.92);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      z-index: 900;
-    }
-
-    .howto-modal-overlay.show {
-      display: flex;
-    }
-
-    .howto-modal {
-      width: min(480px, 92vw);
-      max-height: 80vh;
-      background: #020617;
-      border-radius: 16px;
-      border: 1px solid #4b5563;
-      padding: 14px 14px 16px;
-      box-shadow: 0 20px 40px rgba(0,0,0,0.75);
-      display: flex;
-      flex-direction: column;
-    }
-
-    .howto-modal-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 8px;
-    }
-
-    .howto-modal-title {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 1rem;
-      font-weight: 700;
-      color: #e5e7eb;
-    }
-
-    .howto-modal-icon {
-      font-size: 1.3rem;
-    }
-
-    .howto-close-btn {
-      padding: 4px 8px;
-      border-radius: 999px;
-      background: #374151;
-      color: #e5e7eb;
-      border: none;
-      font-size: 0.8rem;
-      cursor: pointer;
-    }
-
-    .howto-modal-body {
-      margin-top: 4px;
-      padding-top: 4px;
-      border-top: 1px solid #1f2937;
-      overflow-y: auto;
-      font-size: 0.85rem;
-      color: #d1d5db;
-    }
-
-    .howto-section {
-      margin-bottom: 10px;
-    }
-
-    .howto-section h3 {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 0.9rem;
-      margin: 4px 0;
-      color: #e5e7eb;
-    }
-
-    .howto-section-index {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: 18px;
-      height: 18px;
-      border-radius: 999px;
-      background: #4b5563;
-      color: #f9fafb;
-      font-size: 0.7rem;
-      font-weight: 700;
-    }
-
-    .howto-section p {
-      margin: 2px 0 4px;
-    }
-
-    .howto-section ul {
-      padding-left: 1.1rem;
-      margin: 2px 0 2px;
-    }
-
-    .howto-section li {
-      margin-bottom: 2px;
-    }
-
-    .howto-sub {
-      margin-top: 3px;
-      padding: 4px 6px;
-      border-radius: 6px;
-      background: #020617;
-      border: 1px dashed #374151;
-      font-size: 0.78rem;
-    }
-
-    .howto-section code {
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-      background: #020617;
-      padding: 1px 4px;
-      border-radius: 4px;
-      font-size: 0.75rem;
-    }
-
+    body.giveup-flash { filter:brightness(0.7); transition:filter .3s ease; }
   </style>
 </head>
 <body>
   <div class="container">
-
-    <!-- ▼ Firebase ログインエリア ▼ -->
     <div class="auth-panel">
-      <div id="authStatus" class="auth-status">
-        ログインすると記録がオンラインに保存されます（しなくても遊べます）。
-      </div>
+      <div id="authStatus" class="auth-status">ログインすると記録がオンラインに保存されます（しなくても遊べます）</div>
       <div id="authForms" class="auth-forms">
         <input id="usernameInput" type="text" placeholder="ユーザー名（新規登録時のみ・任意）" />
         <input id="emailInput" type="email" placeholder="メールアドレス" />
@@ -711,27 +260,19 @@
         </div>
       </div>
       <div id="loggedInArea" class="loggedin">
-        <div>
-          <span class="loggedin-name" id="currentUserName"></span> さんでログイン中
-        </div>
+        <div><span class="loggedin-name" id="currentUserName"></span> さんでログイン中</div>
         <button id="logoutBtn" class="secondary">ログアウト</button>
       </div>
     </div>
-    <!-- ▲ 認証エリアここまで ▲ -->
 
-    <h1>ヒット＆ブロー（3桁）</h1>
-        <!-- ▼ 遊び方ボタン＆モーダル ▼ -->
+    <h1>ヒット＆ブロー 3桁オンライン</h1>
+
     <div class="howto-bar">
-      <div class="howto-label">ヒット＆ブローが初めての人へ</div>
+      <div class="howto-label">はじめての人へ</div>
       <button id="howtoBtn" class="secondary howto-btn">遊び方</button>
     </div>
-    <!-- ▲ 遊び方ここまで ▲ -->
 
-
-    <div class="status" id="statusText">
-      数字を選んでみてね。
-    </div>
-
+    <div class="status" id="statusText">数字を選んでみてね。</div>
     <div class="message" id="message"></div>
 
     <div class="input-row">
@@ -757,7 +298,6 @@
     </div>
 
     <div class="input-row">
-      <button id="startBtn">ゲーム開始/リセット</button>
       <button id="giveupBtn" class="secondary" disabled>ギブアップ</button>
     </div>
 
@@ -769,67 +309,60 @@
         <div class="stats-label">レベル</div>
         <div class="stats-value level-text" id="statLevel">Lv.1</div>
       </div>
-
-      <!-- ▼ レベルのすぐ下にXPバー ▼ -->
-      <div class="xp-bar-container">
-        <div class="xp-bar-fill" id="xpBarFill"></div>
-      </div>
-
+      <div class="xp-bar-container"><div class="xp-bar-fill" id="xpBarFill"></div></div>
       <div class="stats-row">
         <div class="stats-label">最高スコア</div>
         <div class="stats-value" id="statBestScore">-</div>
       </div>
       <div class="stats-row">
-        <div class="stats-label">連勝ボーナス</div>
-        <div class="stats-value" id="statCombo">なし</div>
+        <div class="stats-label">連勝</div>
+        <div class="stats-value" id="statStreak">0 連勝</div>
       </div>
     </div>
+  </div>
 
-    <!-- ▼ 遊び方モーダル ▼ -->
-    <div id="howtoModal" class="howto-modal-overlay">
-      <div class="howto-modal">
-        <div class="howto-modal-header">
-          <div class="howto-modal-title">
-            <span class="howto-modal-icon">🎮</span>
-            <span>遊び方ガイド</span>
+  <div id="eventOverlay" class="event-overlay">
+    <div class="event-card">
+      <button id="eventClose" class="event-close">閉じる</button>
+      <div class="event-tag">イベント発生</div>
+      <div class="event-name" id="eventName"></div>
+      <div class="event-desc" id="eventDesc"></div>
+    </div>
+  </div>
+
+  <div id="effectLayer"></div>
+
+  <div id="howtoModal" class="howto-modal-overlay">
+    <div class="howto-modal">
+      <div class="howto-modal-header">
+        <div class="howto-modal-title"><span class="howto-modal-icon">🎮</span><span>遊び方ガイド</span></div>
+        <button id="howtoCloseBtn" class="howto-close-btn">✕</button>
+      </div>
+      <div class="howto-modal-body">
+        <section class="howto-section">
+          <h3><span class="howto-section-index">1</span>ゲームの目標</h3>
+          <p>3桁の「秘密の数字」を当てるゲームです。数字はすべてバラバラで、先頭は0になりません。</p>
+          <div class="howto-sub">例: <code>123</code>、<code>947</code> はOK / <code>011</code> や <code>900</code> はNG</div>
+        </section>
+        <section class="howto-section">
+          <h3><span class="howto-section-index">2</span>ヒットとブロー</h3>
+          <p>あなたが入力した桁と答えを比べて、「場所と数字が一致」が<strong>ヒット</strong>、「数字だけ一致・場所違い」が<strong>ブロー</strong>です。</p>
+          <div class="howto-sub">
+            正解: <code>427</code><br>
+            入力 <code>472</code> → 0ヒット / 2ブロー<br>
+            入力 <code>407</code> → 1ヒット / 1ブロー
           </div>
-          <button id="howtoCloseBtn" class="howto-close-btn">✕</button>
-        </div>
-        <div class="howto-modal-body">
-          <section class="howto-section">
-            <h3><span class="howto-section-index">1</span>ゲームの目的</h3>
-            <p>3桁の「秘密の数字」を当てるゲームです。数字はすべてバラバラで、先頭は0になりません。</p>
-            <div class="howto-sub">
-              例：<code>123</code>、<code>947</code> はOK ／ <code>011</code> や <code>900</code> はNG
-            </div>
-          </section>
-
-          <section class="howto-section">
-            <h3><span class="howto-section-index">2</span>ヒットとブロー</h3>
-            <p>
-              あなたが入力した3桁と答えを比べて、「場所と数字が両方一致」した数が
-              <strong>ヒット</strong>、「数字だけ一致（場所は違う）」が <strong>ブロー</strong> です。
-            </p>
-            <div class="howto-sub">
-              正解：<code>427</code><br>
-              入力：<code>472</code> → 0ヒット / 2ブロー<br>
-              入力：<code>407</code> → 1ヒット / 1ブロー
-            </div>
-          </section>
-
-          <section class="howto-section">
-            <h3><span class="howto-section-index">3</span>操作方法（スマホ向け）</h3>
-            <ul>
-              <li>下の数字チップを<strong>タップ</strong>すると、空いているスロットに入ります。</li>
-              <li>スロットを<strong>タップ</strong>すると、その桁を消せます。</li>
-              <li>長押ししてドラッグすると、別のスロットへ移動したり、数字エリアへ戻して消すこともできます。</li>
-            </ul>
-          </section>
-        </div>        </div>
+        </section>
+        <section class="howto-section">
+          <h3><span class="howto-section-index">3</span>操作方法（スマホ向け）</h3>
+          <ul>
+            <li>数字ボタンをタップすると空いているスロットに入ります。</li>
+            <li>スロットをタップすると、その桁を消せます。</li>
+            <li>長押しドラッグで別スロットへ移動、数字エリアへ戻して消すこともできます。</li>
+          </ul>
+        </section>
       </div>
     </div>
-    <!-- ▲ 遊び方モーダルここまで ▲ -->
-
   </div>
 
   <div id="celebration" class="celebration">
@@ -841,24 +374,13 @@
     </div>
   </div>
 
-  <!-- ▼ Firebase + ゲームロジック ▼ -->
   <script type="module">
-    // Firebase SDK をCDNから読み込み
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-    import { 
-      getAuth,
-      onAuthStateChanged,
-      createUserWithEmailAndPassword,
-      signInWithEmailAndPassword,
-      signOut,
-      updateProfile
-    } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
     import {
-      getFirestore,
-      doc,
-      getDoc,
-      setDoc
-    } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+      getAuth, onAuthStateChanged, createUserWithEmailAndPassword,
+      signInWithEmailAndPassword, signOut, updateProfile
+    } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+    import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyCqaHJpQuHv5n_cd4XUPgbBN2PP0LdLf4A",
@@ -875,14 +397,24 @@
     const db = getFirestore(app);
 
     const DIGITS = 3;
+    const STORAGE_KEY_STATS = "hb_stats_v2";
+
+    const EVENTS = [
+      { key: "fullspeed", name: "⚡ フルスピードチャレンジ", probability: 0.15, baseMultiplier: 1, desc: "3T以内x100 / 4-5T x10 / 6T+ 連勝リセット" },
+      { key: "dice", name: "🎲 ダイスボーナス", probability: 0.20, baseMultiplier: 1, desc: "クリア時に2〜6倍" },
+      { key: "meteor", name: "☄ メテオチャンス", probability: 0.02, baseMultiplier: 1, desc: "クリアで x1000 & 連勝+3" },
+      { key: "rainbow", name: "🌈 レインボーモード", probability: 0.20, baseMultiplier: 1.3, desc: "背景が虹色に！ 連勝は通常" },
+      { key: "burst", name: "💥 バーストモード", probability: 0.15, baseMultiplier: 1.5, desc: "フラッシュ&爆発、6T以上でも連勝維持" },
+      { key: "space", name: "🌌 宇宙モード", probability: 0.10, baseMultiplier: 1.7, desc: "星空背景、4T以内なら連勝+2" },
+      { key: "none", name: "通常モード", probability: 0.18, baseMultiplier: 1, desc: "ボーナスなし" }
+    ];
 
     let answer = "";
     let tries = 0;
     let gameActive = false;
     let slotValues = [null, null, null];
-
-    // stats: 旧項目 + XP/スコア
-    const STORAGE_KEY_STATS = "hb_stats_v1";
+    let currentEvent = EVENTS[EVENTS.length - 1];
+    let eventMultiplier = 1;
     let stats = {
       totalGames: 0,
       clears: 0,
@@ -890,13 +422,12 @@
       totalTriesOnClear: 0,
       totalXp: 0,
       bestScore: null,
-      winStreak: 0 // 5ターン以内勝利の連勝数
+      winStreak: 0,
+      bestStreak: 0
     };
-
     let currentUser = null;
 
     const guessBtn = document.getElementById("guessBtn");
-    const startBtn = document.getElementById("startBtn");
     const giveupBtn = document.getElementById("giveupBtn");
     const messageEl = document.getElementById("message");
     const logEl = document.getElementById("log");
@@ -909,9 +440,9 @@
 
     const statLevel = document.getElementById("statLevel");
     const statBestScore = document.getElementById("statBestScore");
+    const statStreak = document.getElementById("statStreak");
     const xpBarFill = document.getElementById("xpBarFill");
     const statsBox = document.getElementById("statsBox");
-    const statCombo = document.getElementById("statCombo");
 
     const celebrationEl = document.getElementById("celebration");
     const celebrationTextEl = document.getElementById("celebrationText");
@@ -921,7 +452,6 @@
     const howtoModal = document.getElementById("howtoModal");
     const howtoCloseBtn = document.getElementById("howtoCloseBtn");
 
-    // 認証UI
     const authStatusEl = document.getElementById("authStatus");
     const authFormsEl = document.getElementById("authForms");
     const loggedInAreaEl = document.getElementById("loggedInArea");
@@ -933,6 +463,12 @@
     const loginBtn = document.getElementById("loginBtn");
     const logoutBtn = document.getElementById("logoutBtn");
 
+    const eventOverlay = document.getElementById("eventOverlay");
+    const eventNameEl = document.getElementById("eventName");
+    const eventDescEl = document.getElementById("eventDesc");
+    const eventCloseBtn = document.getElementById("eventClose");
+    const effectLayer = document.getElementById("effectLayer");
+
     let touchDraggingDigit = null;
     let dragGhost = null;
     let longPressTimer = null;
@@ -940,47 +476,35 @@
     let touchSourceType = null;
     let touchSourceSlotIndex = null;
 
-    const isTouchDevice =
-      "ontouchstart" in window || navigator.maxTouchPoints > 0;
-
+    const isTouchDevice = "ontouchstart" in window || navigator.maxTouchPoints > 0;
     let lastGuessEnabled = false;
 
-    // ===== スコア & レベル関連 =====
-
-    function getScoreMultiplier(tries) {
-      if (tries <= 1) return 1.2;
-      if (tries === 2) return 1.3;
-      if (tries === 3) return 1.4;
-      if (tries === 4) return 1.5;
-      if (tries === 5) return 2.0;
-      if (tries === 6) return 2.5;
-      return 3.0; // 7手目以降
+    function getScoreMultiplier(triesCount) {
+      if (triesCount <= 1) return 1.2;
+      if (triesCount === 2) return 1.3;
+      if (triesCount === 3) return 1.4;
+      if (triesCount === 4) return 1.5;
+      if (triesCount === 5) return 2.0;
+      if (triesCount === 6) return 2.5;
+      return 3.0;
     }
-
-    function calcScoreThisGame(tries) {
-      const difficulty = Math.max(0, 10 - tries);
-      const base = 200 * Math.pow(1.6, difficulty); // ★全体2倍
-      const score = Math.round(base * getScoreMultiplier(tries));
-      return score;
+    function calcScoreThisGame(triesCount) {
+      const difficulty = Math.max(0, 10 - triesCount);
+      const base = 200 * Math.pow(1.6, difficulty);
+      return Math.round(base * getScoreMultiplier(triesCount));
     }
-
     function calcLevel(totalXp) {
       return 1 + Math.floor((totalXp || 0) / 1500);
     }
-
-    // XPバーの見た目更新
     function updateXpBarVisual(totalXp) {
       if (!xpBarFill) return;
       const xp = Math.max(0, totalXp || 0);
-      const currentLevelXp = xp % 1500; // 1レベル1500XP
+      const currentLevelXp = xp % 1500;
       const percent = Math.min(100, (currentLevelXp / 1500) * 100);
       xpBarFill.style.width = percent + "%";
     }
-
-    // XP獲得時のアニメーション
     function animateXpGain(oldXp, newXp) {
       if (!xpBarFill) return;
-
       const oldLevel = calcLevel(oldXp || 0);
       const newLevel = calcLevel(newXp || 0);
       const oldProgress = (oldXp || 0) % 1500;
@@ -993,24 +517,19 @@
         setTimeout(() => xpBarFill.classList.remove("pulse"), 800);
         return;
       }
-
       if (statsBox) {
         statsBox.classList.add("glow");
         setTimeout(() => statsBox.classList.remove("glow"), 900);
       }
-
       if (statLevel) {
         statLevel.classList.add("level-pop");
         setTimeout(() => statLevel.classList.remove("level-pop"), 600);
       }
-
       xpBarFill.style.width = "100%";
       xpBarFill.classList.add("pulse");
-
       setTimeout(() => {
         xpBarFill.classList.remove("pulse");
         xpBarFill.style.width = "0%";
-
         setTimeout(() => {
           const percent = Math.min(100, (newProgress / 1500) * 100);
           xpBarFill.style.width = percent + "%";
@@ -1020,59 +539,30 @@
       }, 800);
     }
 
-    // ===== stats 関連 =====
-
     function loadStatsLocal() {
       try {
         const raw = localStorage.getItem(STORAGE_KEY_STATS);
-        if (!raw) {
-          stats = { 
-            totalGames: 0,
-            clears: 0,
-            bestTries: null,
-            totalTriesOnClear: 0,
-            totalXp: 0,
-            bestScore: null,
-            winStreak: 0
-          };
-          return;
-        }
+        if (!raw) return;
         const data = JSON.parse(raw);
         stats.totalGames = data.totalGames || 0;
         stats.clears = data.clears || 0;
         stats.totalTriesOnClear = data.totalTriesOnClear || 0;
-        stats.bestTries =
-          data.bestTries === null || typeof data.bestTries === "number"
-            ? data.bestTries
-            : null;
+        stats.bestTries = typeof data.bestTries === "number" || data.bestTries === null ? data.bestTries : null;
         stats.totalXp = typeof data.totalXp === "number" ? data.totalXp : 0;
-        stats.bestScore =
-          data.bestScore === null || typeof data.bestScore === "number"
-            ? data.bestScore
-            : null;
-        stats.winStreak = data.winStreak || 0;
+        stats.bestScore = typeof data.bestScore === "number" || data.bestScore === null ? data.bestScore : null;
+        stats.winStreak = typeof data.winStreak === "number" ? data.winStreak : 0;
+        stats.bestStreak = typeof data.bestStreak === "number" ? data.bestStreak : 0;
       } catch (e) {
-        console.warn("戦績の読み込みに失敗:", e);
-        stats = { 
-          totalGames: 0,
-          clears: 0,
-          bestTries: null,
-          totalTriesOnClear: 0,
-          totalXp: 0,
-          bestScore: null,
-          winStreak: 0
-        };
+        console.warn("戦績の読み込みに失敗しました", e);
       }
     }
-
     function saveStatsLocal() {
       try {
         localStorage.setItem(STORAGE_KEY_STATS, JSON.stringify(stats));
       } catch (e) {
-        console.warn("戦績の保存に失敗:", e);
+        console.warn("戦績の保存に失敗しました", e);
       }
     }
-
     async function loadStatsCloud() {
       if (!currentUser || !db) return;
       const ref = doc(db, "users", currentUser.uid);
@@ -1085,80 +575,146 @@
             stats.totalGames = s.totalGames || 0;
             stats.clears = s.clears || 0;
             stats.totalTriesOnClear = s.totalTriesOnClear || 0;
-            stats.bestTries =
-              s.bestTries === null || typeof s.bestTries === "number"
-                ? s.bestTries
-                : null;
-            stats.totalXp =
-              typeof s.totalXp === "number" ? s.totalXp : 0;
-            stats.bestScore =
-              s.bestScore === null || typeof s.bestScore === "number"
-                ? s.bestScore
-                : null;
-            stats.winStreak = s.winStreak || 0;
+            stats.bestTries = typeof s.bestTries === "number" || s.bestTries === null ? s.bestTries : null;
+            stats.totalXp = typeof s.totalXp === "number" ? s.totalXp : 0;
+            stats.bestScore = typeof s.bestScore === "number" || s.bestScore === null ? s.bestScore : null;
+            stats.winStreak = typeof s.winStreak === "number" ? s.winStreak : 0;
+            stats.bestStreak = typeof s.bestStreak === "number" ? s.bestStreak : 0;
           }
         } else {
-          // 初回ログイン: ローカルの stats をそのままクラウドに送る
-          await setDoc(ref, {
-            email: currentUser.email,
-            username: currentUser.displayName || null,
-            stats: stats
-          }, { merge: true });
+          await setDoc(ref, { email: currentUser.email, username: currentUser.displayName || null, stats }, { merge: true });
         }
         updateStatsView();
       } catch (e) {
-        console.error("クラウド戦績の読み込みに失敗:", e);
+        console.error("クラウド戦績の読み込みに失敗", e);
       }
     }
-
     async function saveStatsCloud() {
       if (!currentUser || !db) return;
       try {
         const ref = doc(db, "users", currentUser.uid);
-        await setDoc(ref, {
-          email: currentUser.email,
-          username: currentUser.displayName || null,
-          stats: stats
-        }, { merge: true });
+        await setDoc(ref, { email: currentUser.email, username: currentUser.displayName || null, stats }, { merge: true });
       } catch (e) {
-        console.error("クラウド戦績の保存に失敗:", e);
+        console.error("クラウド戦績の保存に失敗", e);
       }
     }
-
     function updateStatsView() {
       const level = calcLevel(stats.totalXp);
       statLevel.textContent = `Lv.${level}`;
-      statBestScore.textContent =
-        stats.bestScore == null ? "-" : `${stats.bestScore} 点`;
-
-      const combo = stats.winStreak || 0;
-      const bonusPercent = Math.min(combo, 10) * 10;
-      if (statCombo) {
-        statCombo.textContent =
-          combo === 0 ? "なし" : `${combo}連勝（+${bonusPercent}%）`;
-      }
-
+      statBestScore.textContent = stats.bestScore == null ? "-" : `${stats.bestScore} 点`;
+      statStreak.textContent = `${stats.winStreak} 連勝`;
       updateXpBarVisual(stats.totalXp);
     }
+    function loadStats() { loadStatsLocal(); }
+    function saveStats() { saveStatsLocal(); if (currentUser) saveStatsCloud(); }
 
-    function loadStats() {
-      loadStatsLocal();
+    function selectEvent() {
+      const r = Math.random();
+      let acc = 0;
+      let picked = EVENTS[EVENTS.length - 1];
+      for (const ev of EVENTS) {
+        acc += ev.probability;
+        if (r < acc) { picked = ev; break; }
+      }
+      currentEvent = picked;
+      eventMultiplier = picked.baseMultiplier || 1;
+      applyEventVisuals(picked.key);
+      if (picked.key !== "none") {
+        showEventPopup(picked);
+      } else {
+        hideEventPopup();
+      }
     }
-
-    function saveStats() {
-      saveStatsLocal();
-      if (currentUser) {
-        saveStatsCloud();
+    function showEventPopup(ev) {
+      eventNameEl.textContent = ev.name;
+      eventDescEl.textContent = ev.desc;
+      eventOverlay.classList.add("show");
+    }
+    function hideEventPopup() {
+      eventOverlay.classList.remove("show");
+    }
+    function applyEventVisuals(key) {
+      document.body.classList.remove("rainbow-mode", "space-mode", "burst-flash");
+      const existingShine = document.querySelector(".rainbow-shine");
+      if (existingShine) existingShine.remove();
+      if (key === "rainbow") {
+        document.body.classList.add("rainbow-mode");
+        const shine = document.createElement("div");
+        shine.className = "rainbow-shine";
+        document.body.appendChild(shine);
+      } else if (key === "space") {
+        document.body.classList.add("space-mode");
       }
     }
 
-    // ===== 演出 / UI =====
+    function baseStreakRule(triesCount) {
+      if (triesCount <= 5) {
+        return { delta: 1, reset: false };
+      }
+      return { delta: 0, reset: true };
+    }
+    function resolveEventOnWin(triesCount) {
+      let multiplier = 1;
+      let streakDelta = 0;
+      let resetStreak = false;
+
+      switch (currentEvent.key) {
+        case "fullspeed":
+          if (triesCount <= 3) { multiplier = 100; streakDelta = 2; }
+          else if (triesCount <= 5) { multiplier = 10; streakDelta = 1; }
+          else { multiplier = 1; resetStreak = true; }
+          break;
+        case "dice":
+          multiplier = 2 + Math.floor(Math.random() * 5);
+          ({ delta: streakDelta, reset: resetStreak } = baseStreakRule(triesCount));
+          break;
+        case "meteor":
+          multiplier = 1000;
+          streakDelta = 3;
+          break;
+        case "rainbow":
+          multiplier = currentEvent.baseMultiplier;
+          ({ delta: streakDelta, reset: resetStreak } = baseStreakRule(triesCount));
+          break;
+        case "burst":
+          multiplier = currentEvent.baseMultiplier;
+          streakDelta = 1;
+          resetStreak = false;
+          break;
+        case "space":
+          multiplier = currentEvent.baseMultiplier;
+          if (triesCount <= 4) {
+            streakDelta = 2;
+            resetStreak = false;
+          } else {
+            ({ delta: streakDelta, reset: resetStreak } = baseStreakRule(triesCount));
+          }
+          break;
+        case "none":
+        default:
+          multiplier = 1;
+          ({ delta: streakDelta, reset: resetStreak } = baseStreakRule(triesCount));
+          break;
+      }
+      return { multiplier, streakDelta, resetStreak };
+    }
+    function resetStreak() { stats.winStreak = 0; }
+    function applyStreakChange(delta, resetFlag) {
+      if (resetFlag) {
+        stats.winStreak = 0;
+      } else {
+        stats.winStreak = Math.max(0, stats.winStreak + delta);
+      }
+      stats.bestStreak = Math.max(stats.bestStreak, stats.winStreak);
+    }
+    function getComboPercent() {
+      return Math.min(stats.winStreak * 10, 200);
+    }
 
     function shakeSlots() {
       slotsContainer.classList.add("shake");
       setTimeout(() => slotsContainer.classList.remove("shake"), 220);
     }
-
     function popSlot(index) {
       const slot = slots[index];
       if (!slot) return;
@@ -1168,24 +724,18 @@
         setTimeout(() => slot.classList.remove("slot-pop"), 200);
       });
     }
-
     function flashDigitElement(btn) {
       if (!btn) return;
       btn.classList.add("flash");
       setTimeout(() => btn.classList.remove("flash"), 130);
     }
-
     function updateDigitButtonsView() {
       digitButtons.forEach(btn => {
         const d = btn.dataset.digit;
-        if (slotValues.includes(d)) {
-          btn.classList.add("used");
-        } else {
-          btn.classList.remove("used");
-        }
+        if (slotValues.includes(d)) btn.classList.add("used");
+        else btn.classList.remove("used");
       });
     }
-
     function updateSlotsView() {
       slots.forEach((slot, index) => {
         const v = slotValues[index];
@@ -1200,7 +750,6 @@
       updateDigitButtonsView();
       updateGuessBtnState();
     }
-
     function updateGuessBtnState() {
       const filled = slotValues.every(v => v !== null);
       const nowEnabled = gameActive && filled;
@@ -1215,11 +764,7 @@
       }
       lastGuessEnabled = nowEnabled;
     }
-
-    function isDigitUsed(d) {
-      return slotValues.includes(d);
-    }
-
+    function isDigitUsed(d) { return slotValues.includes(d); }
     function canPlaceDigitAt(index, digit) {
       if (index === 0 && digit === "0") {
         messageEl.textContent = "先頭は0以外にしてね。";
@@ -1233,11 +778,10 @@
       }
       return true;
     }
-
     function placeDigitInFirstEmpty(digit) {
       const idx = slotValues.findIndex(v => v === null);
       if (idx === -1) {
-        messageEl.textContent = `もう${DIGITS}桁入っているよ。消したい桁をタップしてね。`;
+        messageEl.textContent = `もう${DIGITS}桁入ってるよ。消したい桁をタップしてね。`;
         shakeSlots();
         return;
       }
@@ -1247,7 +791,6 @@
       updateSlotsView();
       popSlot(idx);
     }
-
     function moveOrSwapBetweenSlots(fromIndex, toIndex) {
       if (fromIndex === toIndex) return;
       const fromVal = slotValues[fromIndex];
@@ -1267,10 +810,9 @@
     }
 
     function randomColor() {
-      const colors = ["#f97316", "#22c55e", "#3b82f6", "#eab308", "#ec4899", "#a855f7"];
+      const colors = ["#f97316","#22c55e","#3b82f6","#eab308","#ec4899","#a855f7"];
       return colors[Math.floor(Math.random() * colors.length)];
     }
-
     function createConfettiPieces() {
       const old = celebrationEl.querySelectorAll(".confetti");
       old.forEach(el => el.remove());
@@ -1281,9 +823,7 @@
         const size = 6 + Math.random() * 10;
         piece.style.width = size + "px";
         piece.style.height = size * (1.2 + Math.random() * 0.8) + "px";
-        if (Math.random() < 0.3) {
-          piece.style.borderRadius = "999px";
-        }
+        if (Math.random() < 0.3) piece.style.borderRadius = "999px";
         piece.style.left = Math.random() * 100 + "vw";
         piece.style.backgroundColor = randomColor();
         piece.style.animationDelay = (Math.random() * 0.6) + "s";
@@ -1291,7 +831,6 @@
         celebrationEl.appendChild(piece);
       }
     }
-
     function createWaves() {
       for (let i = 0; i < 3; i++) {
         const wave = document.createElement("div");
@@ -1301,29 +840,19 @@
         setTimeout(() => wave.remove(), 1200);
       }
     }
-
-    function showCelebration(tries, baseScore, finalScore, combo, bonusPercent, oldLevel, newLevel) {
+    function showCelebration(triesCount, score, oldLevel, newLevel) {
       celebrationTextEl.textContent = "正解！";
-
-      let subHtml = `${tries}回で当てたよ！<br>基本スコア：<strong>${baseScore}</strong> 点`;
-      if (combo > 0 && bonusPercent > 0) {
-        subHtml += `<br>連勝ボーナス：${combo}連勝（+${bonusPercent}%）`;
-        subHtml += `<br>今回のスコア合計：<strong>${finalScore}</strong> 点`;
-      } else {
-        subHtml += `<br>今回のスコア：<strong>${finalScore}</strong> 点`;
-      }
+      let subHtml = `${triesCount}回で当てたよ！<br>今回のスコア: <strong>${score}</strong> 点`;
       if (newLevel > oldLevel) {
         subHtml += `<br>Lv.${oldLevel} → <strong>Lv.${newLevel}</strong> にレベルアップ！`;
       }
       celebrationSubEl.innerHTML = subHtml;
-
       createConfettiPieces();
       createWaves();
       celebrationEl.classList.add("show");
       setTimeout(() => {
         celebrationEl.classList.remove("show");
-        const old = celebrationEl.querySelectorAll(".confetti");
-        old.forEach(el => el.remove());
+        celebrationEl.querySelectorAll(".confetti").forEach(el => el.remove());
       }, 2200);
     }
 
@@ -1340,25 +869,18 @@
       }
       return first + rest.join("");
     }
-
     function calcHitAndBlow(ans, guess) {
-      let hit = 0;
-      let blow = 0;
+      let hit = 0, blow = 0;
       for (let i = 0; i < DIGITS; i++) {
-        if (guess[i] === ans[i]) {
-          hit++;
-        } else if (ans.includes(guess[i])) {
-          blow++;
-        }
+        if (guess[i] === ans[i]) hit++;
+        else if (ans.includes(guess[i])) blow++;
       }
       return { hit, blow };
     }
-
     function resetSlots() {
       slotValues = [null, null, null];
       updateSlotsView();
     }
-
     function startGame() {
       answer = generateAnswer();
       tries = 0;
@@ -1370,26 +892,55 @@
       messageEl.textContent = "";
       logEl.innerHTML = "";
       statusText.textContent = "ゲーム開始！3桁の数字を当ててみてね。";
+      selectEvent();
       console.log("答え:", answer);
       stats.totalGames += 1;
       saveStats();
       updateStatsView();
     }
-
     function endGame() {
       gameActive = false;
       guessBtn.disabled = true;
       giveupBtn.disabled = true;
     }
-
     function addLog(text, hit) {
       const div = document.createElement("div");
       div.className = "log-entry";
-      if (typeof hit === "number") {
-        div.classList.add(`hit-${hit}`);
-      }
+      if (typeof hit === "number") div.classList.add(`hit-${hit}`);
       div.innerHTML = text;
       logEl.prepend(div);
+    }
+
+    function playMeteorEffect() {
+      const meteor = document.createElement("div");
+      meteor.className = "meteor";
+      meteor.style.left = "-40px";
+      meteor.style.top = "-40px";
+      effectLayer.appendChild(meteor);
+      meteor.addEventListener("animationend", () => meteor.remove());
+      setTimeout(() => spawnExplosion(window.innerWidth * 0.7, window.innerHeight * 0.7), 500);
+    }
+    function spawnExplosion(x, y) {
+      const ex = document.createElement("div");
+      ex.className = "explosion";
+      ex.style.left = (x - 60) + "px";
+      ex.style.top = (y - 60) + "px";
+      effectLayer.appendChild(ex);
+      setTimeout(() => ex.remove(), 650);
+    }
+    function playBurstEffect() {
+      document.body.classList.add("burst-flash");
+      spawnExplosion(window.innerWidth * 0.5, window.innerHeight * 0.5);
+      setTimeout(() => document.body.classList.remove("burst-flash"), 400);
+    }
+    function playDiceRoll(value) {
+      const dice = document.createElement("div");
+      dice.className = "dice";
+      dice.textContent = value;
+      dice.style.left = "50%";
+      dice.style.top = "55%";
+      effectLayer.appendChild(dice);
+      setTimeout(() => dice.remove(), 1200);
     }
 
     function handleGuess() {
@@ -1403,47 +954,47 @@
       messageEl.textContent = "";
       tries++;
       const { hit, blow } = calcHitAndBlow(answer, guess);
-      addLog(
-        `<strong>${guess}</strong> ▶ ヒット: <strong>${hit}</strong>, ブロー: <strong>${blow}</strong>（${tries}回目）`,
-        hit
-      );
+      addLog(`<strong>${guess}</strong> ▶ ヒット: <strong>${hit}</strong>, ブロー: <strong>${blow}</strong>（${tries}回目）`, hit);
+
       if (hit === DIGITS) {
         const prevXp = stats.totalXp || 0;
         const prevLevel = calcLevel(prevXp);
+
         const baseScore = calcScoreThisGame(tries);
+        const comboPercent = getComboPercent();
+        const scoreAfterCombo = Math.round(baseScore * (1 + comboPercent / 100));
 
-        statusText.textContent = `🎉 正解！答えは ${answer} でした！（${tries}回でクリア）`;
+        const { multiplier, streakDelta, resetStreak: streakReset } = resolveEventOnWin(tries);
+        eventMultiplier = multiplier;
+        const finalScore = Math.round(scoreAfterCombo * multiplier);
 
-        // 5ターン以内クリアなら連勝継続、それ以外は連勝リセット
-        if (tries <= 5) {
-          stats.winStreak = (stats.winStreak || 0) + 1;
-        } else {
-          stats.winStreak = 0;
-        }
+        applyStreakChange(streakDelta, streakReset);
 
-        const combo = stats.winStreak || 0;
-        const bonusPercent = Math.min(combo, 10) * 10; // 最大 +100%
-        const finalScore = Math.round(baseScore * (1 + bonusPercent / 100));
-
-        // 旧手数系の記録も一応維持
+        statusText.textContent = `🎉 正解！答えは ${answer} でした。（${tries}回でクリア）`;
         stats.clears += 1;
         stats.totalTriesOnClear += tries;
-        if (stats.bestTries === null || tries < stats.bestTries) {
-          stats.bestTries = tries;
-        }
+        if (stats.bestTries === null || tries < stats.bestTries) stats.bestTries = tries;
 
-        // XP & スコア更新（連勝ボーナス込み）
         stats.totalXp = prevXp + finalScore;
-        if (stats.bestScore == null || finalScore > stats.bestScore) {
-          stats.bestScore = finalScore;
-        }
-        const newLevel = calcLevel(stats.totalXp);
+        if (stats.bestScore == null || finalScore > stats.bestScore) stats.bestScore = finalScore;
 
+        const newLevel = calcLevel(stats.totalXp);
         saveStats();
         updateStatsView();
         animateXpGain(prevXp, stats.totalXp);
-        showCelebration(tries, baseScore, finalScore, combo, bonusPercent, prevLevel, newLevel);
+
+        if (currentEvent.key === "meteor") playMeteorEffect();
+        if (currentEvent.key === "burst") playBurstEffect();
+        if (currentEvent.key === "dice") playDiceRoll(multiplier);
+
+        showCelebration(tries, finalScore, prevLevel, newLevel);
+
+        addLog(
+          `<strong>Score</strong> ▶ base ${baseScore} → 連勝+${comboPercent}% = ${scoreAfterCombo} → イベント x${multiplier} = <strong>${finalScore}</strong>`,
+          hit
+        );
         endGame();
+        setTimeout(startGame, 2400); // クリア後に自動リセット
       } else {
         statusText.textContent = `ヒット: ${hit}, ブロー: ${blow}（${tries}回目）`;
       }
@@ -1454,49 +1005,35 @@
       dragGhost.style.left = x + "px";
       dragGhost.style.top = y + "px";
     }
-
     function getSlotFromElement(el) {
       if (!el) return null;
       if (el.classList && el.classList.contains("slot")) return el;
-      if (el.parentElement && el.parentElement.classList && el.parentElement.classList.contains("slot")) {
-        return el.parentElement;
-      }
+      if (el.parentElement && el.parentElement.classList && el.parentElement.classList.contains("slot")) return el.parentElement;
       return null;
     }
-
-    function clearSlotHighlight() {
-      slots.forEach(s => s.classList.remove("highlight"));
-    }
-
+    function clearSlotHighlight() { slots.forEach(s => s.classList.remove("highlight")); }
     function highlightSlotUnder(el) {
       clearSlotHighlight();
       const slot = getSlotFromElement(el);
       if (slot) slot.classList.add("highlight");
     }
-
     function isInDigitPadArea(el) {
       if (!el) return false;
-      if (el === digitPad) return true;
-      if (digitPad.contains(el)) return true;
-      return false;
+      return el === digitPad || digitPad.contains(el);
     }
-
     function placeDigitIntoSlotElement(slotEl, digit) {
       const index = slots.indexOf(slotEl);
       if (index === -1) return;
       const existingIndex = slotValues.indexOf(digit);
-      if (existingIndex !== -1 && existingIndex !== index) {
-        slotValues[existingIndex] = null;
-      }
+      if (existingIndex !== -1 && existingIndex !== index) slotValues[existingIndex] = null;
       if (!canPlaceDigitAt(index, digit)) return;
       slotValues[index] = digit;
       updateSlotsView();
       popSlot(index);
     }
-
     function handleDigitTapByDigit(digit) {
       if (!gameActive) {
-        messageEl.textContent = "リセットボタンで新しいゲームを始めてね。";
+        messageEl.textContent = "次のゲームを準備中です。";
         return;
       }
       const btn = digitButtons.find(b => b.dataset.digit === digit);
@@ -1514,15 +1051,11 @@
     digitButtons.forEach(btn => {
       const d = btn.dataset.digit;
       if (!isTouchDevice) {
-        btn.addEventListener("click", () => {
-          handleDigitTapByDigit(d);
-        });
-        btn.addEventListener("dragstart", (e) => {
-          e.dataTransfer.setData("text/plain", "digit:" + d);
-        });
+        btn.addEventListener("click", () => handleDigitTapByDigit(d));
+        btn.addEventListener("dragstart", e => { e.dataTransfer.setData("text/plain", "digit:" + d); });
       }
       if (isTouchDevice) {
-        btn.addEventListener("touchstart", (e) => {
+        btn.addEventListener("touchstart", e => {
           if (!gameActive) return;
           const touch = e.touches[0];
           touchDraggingDigit = d;
@@ -1553,24 +1086,15 @@
 
       if (!isTouchDevice) {
         slot.draggable = true;
-        slot.addEventListener("dragstart", (e) => {
+        slot.addEventListener("dragstart", e => {
           if (!gameActive) { e.preventDefault(); return; }
           const val = slotValues[index];
           if (val == null) { e.preventDefault(); return; }
           e.dataTransfer.setData("text/plain", "slot:" + index + ":" + val);
         });
-
-        slot.addEventListener("dragover", (e) => {
-          if (!gameActive) return;
-          e.preventDefault();
-          slot.classList.add("highlight");
-        });
-
-        slot.addEventListener("dragleave", () => {
-          slot.classList.remove("highlight");
-        });
-
-        slot.addEventListener("drop", (e) => {
+        slot.addEventListener("dragover", e => { if (!gameActive) return; e.preventDefault(); slot.classList.add("highlight"); });
+        slot.addEventListener("dragleave", () => slot.classList.remove("highlight"));
+        slot.addEventListener("drop", e => {
           if (!gameActive) return;
           e.preventDefault();
           slot.classList.remove("highlight");
@@ -1597,9 +1121,7 @@
             return;
           }
           const existingIndex = slotValues.indexOf(digit);
-          if (existingIndex !== -1 && existingIndex !== targetIndex) {
-            slotValues[existingIndex] = null;
-          }
+          if (existingIndex !== -1 && existingIndex !== targetIndex) slotValues[existingIndex] = null;
           if (!canPlaceDigitAt(targetIndex, digit)) return;
           slotValues[targetIndex] = digit;
           updateSlotsView();
@@ -1608,7 +1130,7 @@
       }
 
       if (isTouchDevice) {
-        slot.addEventListener("touchstart", (e) => {
+        slot.addEventListener("touchstart", e => {
           if (!gameActive) return;
           const val = slotValues[index];
           if (val == null) return;
@@ -1630,12 +1152,8 @@
     });
 
     if (!isTouchDevice) {
-      digitPad.addEventListener("dragover", (e) => {
-        if (!gameActive) return;
-        e.preventDefault();
-      });
-
-      digitPad.addEventListener("drop", (e) => {
+      digitPad.addEventListener("dragover", e => { if (!gameActive) return; e.preventDefault(); });
+      digitPad.addEventListener("drop", e => {
         if (!gameActive) return;
         e.preventDefault();
         const payload = e.dataTransfer.getData("text/plain");
@@ -1652,7 +1170,7 @@
     }
 
     if (isTouchDevice) {
-      document.addEventListener("touchmove", (e) => {
+      document.addEventListener("touchmove", e => {
         if (!touchSourceType) return;
         const touch = e.touches[0];
         if (isTouchDragging && dragGhost) {
@@ -1695,10 +1213,7 @@
             }
           }
           clearSlotHighlight();
-          if (dragGhost) {
-            dragGhost.remove();
-            dragGhost = null;
-          }
+          if (dragGhost) { dragGhost.remove(); dragGhost = null; }
           isTouchDragging = false;
           ev.preventDefault();
         } else {
@@ -1715,25 +1230,18 @@
       }
 
       document.addEventListener("touchend", finishTouchDrag, { passive: false });
-      document.addEventListener("touchcancel", (e) => {
+      document.addEventListener("touchcancel", e => {
         clearTimeout(longPressTimer);
         touchDraggingDigit = null;
         touchSourceType = null;
         touchSourceSlotIndex = null;
         isTouchDragging = false;
         clearSlotHighlight();
-        if (dragGhost) {
-          dragGhost.remove();
-          dragGhost = null;
-        }
+        if (dragGhost) { dragGhost.remove(); dragGhost = null; }
       }, { passive: true });
     }
 
     guessBtn.addEventListener("click", handleGuess);
-
-    startBtn.addEventListener("click", () => {
-      startGame();
-    });
 
     giveupBtn.addEventListener("click", () => {
       if (!gameActive) return;
@@ -1745,97 +1253,61 @@
         statusText.classList.remove("status-sad");
         document.body.classList.remove("giveup-flash");
       }, 450);
-      endGame();
-      stats.winStreak = 0;
+      resetStreak();
       saveStats();
       updateStatsView();
+      endGame();
+      setTimeout(startGame, 1200); // ギブアップ後も自動再開
     });
 
-    // 遊び方モーダル
-    if (howtoBtn && howtoModal) {
-      howtoBtn.addEventListener("click", () => {
-        howtoModal.classList.add("show");
-      });
-    }
+    if (howtoBtn && howtoModal) howtoBtn.addEventListener("click", () => howtoModal.classList.add("show"));
     if (howtoModal) {
-      howtoModal.addEventListener("click", (e) => {
-        if (e.target === howtoModal) {
-          howtoModal.classList.remove("show");
-        }
-      });
+      howtoModal.addEventListener("click", e => { if (e.target === howtoModal) howtoModal.classList.remove("show"); });
     }
-    if (howtoCloseBtn && howtoModal) {
-      howtoCloseBtn.addEventListener("click", () => {
-        howtoModal.classList.remove("show");
-      });
-    }
+    if (howtoCloseBtn && howtoModal) howtoCloseBtn.addEventListener("click", () => howtoModal.classList.remove("show"));
 
-    // ---- 認証処理 ----
+    if (eventCloseBtn) {
+      eventCloseBtn.addEventListener("click", hideEventPopup);
+    }
 
     signupBtn.addEventListener("click", async () => {
       const email = emailInput.value.trim();
       const password = passwordInput.value;
       const username = usernameInput.value.trim();
-
-      if (!email || !password) {
-        authStatusEl.textContent = "メールアドレスとパスワードを入力してください。";
-        return;
-      }
-
-      if (password.length < 6) {
-        authStatusEl.textContent = "パスワードは6文字以上にしてください。";
-        return;
-      }
-
+      if (!email || !password) { authStatusEl.textContent = "メールアドレスとパスワードを入力してください。"; return; }
+      if (password.length < 6) { authStatusEl.textContent = "パスワードは6文字以上にしてください。"; return; }
       try {
         const cred = await createUserWithEmailAndPassword(auth, email, password);
-        if (username) {
-          await updateProfile(cred.user, { displayName: username });
-        }
+        if (username) await updateProfile(cred.user, { displayName: username });
         authStatusEl.textContent = "新規登録に成功しました。ログイン状態です。";
-        emailInput.value = "";
-        passwordInput.value = "";
+        emailInput.value = ""; passwordInput.value = "";
       } catch (e) {
         console.error(e);
-        authStatusEl.textContent = "新規登録に失敗しました：" + (e.message || e.code);
+        authStatusEl.textContent = "新規登録に失敗しました: " + (e.message || e.code);
       }
     });
-
     loginBtn.addEventListener("click", async () => {
       const email = emailInput.value.trim();
       const password = passwordInput.value;
-
-      if (!email || !password) {
-        authStatusEl.textContent = "メールアドレスとパスワードを入力してください。";
-        return;
-      }
-
+      if (!email || !password) { authStatusEl.textContent = "メールアドレスとパスワードを入力してください。"; return; }
       try {
         await signInWithEmailAndPassword(auth, email, password);
         authStatusEl.textContent = "ログインしました。";
-        emailInput.value = "";
-        passwordInput.value = "";
+        emailInput.value = ""; passwordInput.value = "";
       } catch (e) {
         console.error(e);
-        authStatusEl.textContent = "ログインに失敗しました：" + (e.message || e.code);
+        authStatusEl.textContent = "ログインに失敗しました: " + (e.message || e.code);
       }
     });
+    logoutBtn.addEventListener("click", async () => { try { await signOut(auth); } catch (e) { console.error(e); } });
 
-    logoutBtn.addEventListener("click", async () => {
-      try {
-        await signOut(auth);
-      } catch (e) {
-        console.error(e);
-      }
-    });
-
-    onAuthStateChanged(auth, async (user) => {
+    onAuthStateChanged(auth, async user => {
       currentUser = user;
       if (user) {
         authFormsEl.style.display = "none";
         loggedInAreaEl.style.display = "flex";
         currentUserNameEl.textContent = user.displayName || user.email;
-        authStatusEl.textContent = "オンライン記録：ログイン中です。";
+        authStatusEl.textContent = "オンライン記録にログイン中です。";
         await loadStatsCloud();
       } else {
         loggedInAreaEl.style.display = "none";
@@ -1846,11 +1318,10 @@
       }
     });
 
-    // 初期化
     loadStats();
     updateStatsView();
     updateSlotsView();
-    startGame();
+    startGame(); // 初回は自動スタート
   </script>
 </body>
 </html>
