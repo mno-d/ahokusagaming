@@ -81,7 +81,7 @@
       font-size: 0.9rem;
       margin-bottom: 8px;
       color: #f97316;
-      transition: opacity 0.15s.ease;
+      transition: opacity 0.15s ease;
     }
 
     .log {
@@ -97,7 +97,7 @@
       margin-bottom: 4px;
       background: #111827;
       border-left: 3px solid transparent;
-      animation: logDrop 0.22s.ease-out;
+      animation: logDrop 0.22s ease-out;
       transform-origin: top;
     }
 
@@ -132,11 +132,11 @@
       margin-top: 8px;
       font-size: 0.9rem;
       color: #a5b4fc;
-      transition: transform 0.15s.ease, color 0.2s.ease;
+      transition: transform 0.15s ease, color 0.2s ease;
     }
 
     .status-sad {
-      animation: statusShake 0.4s.ease;
+      animation: statusShake 0.4s ease;
       color: #f97316;
     }
 
@@ -149,11 +149,11 @@
     .slots {
       display: flex;
       gap: 8px;
-      transition: transform 0.15s.ease;
+      transition: transform 0.15s ease;
     }
 
     .slots.shake {
-      animation: slotsShake 0.2s.ease;
+      animation: slotsShake 0.2s ease;
     }
 
     @keyframes slotsShake {
@@ -188,7 +188,7 @@
       color: #e5e7eb;
       user-select: none;
       touch-action: manipulation;
-      transition: border-color 0.15s.ease, box-shadow 0.15s.ease, background 0.15s.ease, transform 0.1s.ease;
+      transition: border-color 0.15s ease, box-shadow 0.15s.ease, background 0.15s.ease, transform 0.1s ease;
     }
 
     .slot.empty {
@@ -198,7 +198,7 @@
 
     .slot.highlight {
       border-color: #f97316;
-      animation: slotPulse 0.5s.ease-out infinite;
+      animation: slotPulse 0.5s ease-out infinite;
     }
 
     @keyframes slotPulse {
@@ -207,7 +207,7 @@
     }
 
     .slot-pop {
-      animation: slotPop 0.18s.ease-out;
+      animation: slotPop 0.18s ease-out;
     }
 
     @keyframes slotPop {
@@ -291,7 +291,7 @@
       align-items: center;
       justify-content: center;
       z-index: 999;
-      animation: fadeIn 0.25s.ease-out;
+      animation: fadeIn 0.25s ease-out;
       overflow: hidden;
     }
 
@@ -301,7 +301,7 @@
 
     .celebration-content {
       text-align: center;
-      animation: popIn 0.4s.ease-out;
+      animation: popIn 0.4s ease-out;
       position: relative;
       z-index: 2;
     }
@@ -309,7 +309,7 @@
     .celebration-emoji {
       font-size: 3.5rem;
       margin-bottom: 8px;
-      animation: bounce 0.8s.ease-out infinite;
+      animation: bounce 0.8s ease-out infinite;
     }
 
     .celebration-text {
@@ -335,7 +335,7 @@
       position: absolute;
       border-radius: 2px;
       opacity: 0.9;
-      animation: confettiFall 1.8s.linear forwards;
+      animation: confettiFall 1.8s linear forwards;
       z-index: 1;
     }
 
@@ -349,7 +349,7 @@
       width: 0;
       height: 0;
       opacity: 0.8;
-      animation: waveOut 0.9s.ease-out forwards;
+      animation: waveOut 0.9s ease-out forwards;
       z-index: 0;
     }
 
@@ -407,7 +407,7 @@
       z-index: 9999;
       box-shadow: 0 4px 10px rgba(0,0,0,0.5);
       transform: translate(-50%, -50%);
-      animation: ghostPop 0.12s.ease-out;
+      animation: ghostPop 0.12s ease-out;
     }
 
     @keyframes ghostPop {
@@ -417,7 +417,7 @@
 
     body.giveup-flash {
       filter: brightness(0.7);
-      transition: filter 0.3s.ease;
+      transition: filter 0.3s ease;
     }
 
     /* ▼ 遊び方ボタン＆パネル ▼ */
@@ -620,20 +620,12 @@
     <div class="stats">
       <div class="stats-title">📊 記録（ログイン中はオンライン保存）</div>
       <div class="stats-row">
-        <div class="stats-label">プレイ回数</div>
-        <div class="stats-value" id="statTotal">0</div>
+        <div class="stats-label">レベル</div>
+        <div class="stats-value" id="statLevel">Lv.1</div>
       </div>
       <div class="stats-row">
-        <div class="stats-label">クリア回数</div>
-        <div class="stats-value" id="statClears">0</div>
-      </div>
-      <div class="stats-row">
-        <div class="stats-label">ベスト（最小手数）</div>
-        <div class="stats-value" id="statBest">-</div>
-      </div>
-      <div class="stats-row">
-        <div class="stats-label">平均手数（クリア時のみ）</div>
-        <div class="stats-value" id="statAvg">-</div>
+        <div class="stats-label">最高スコア</div>
+        <div class="stats-value" id="statBestScore">-</div>
       </div>
     </div>
   </div>
@@ -666,7 +658,6 @@
       setDoc
     } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
-    // Soさんの設定
     const firebaseConfig = {
       apiKey: "AIzaSyCqaHJpQuHv5n_cd4XUPgbBN2PP0LdLf4A",
       authDomain: "hitandblow-game.firebaseapp.com",
@@ -688,13 +679,15 @@
     let gameActive = false;
     let slotValues = [null, null, null];
 
-    // stats は共通。guest時はlocalStorage、ログイン時はFirestoreに同期
+    // stats: 旧項目 + XP/スコア
     const STORAGE_KEY_STATS = "hb_stats_v1";
     let stats = {
       totalGames: 0,
       clears: 0,
       bestTries: null,
-      totalTriesOnClear: 0
+      totalTriesOnClear: 0,
+      totalXp: 0,
+      bestScore: null
     };
 
     let currentUser = null;
@@ -711,10 +704,8 @@
     const digitButtons = Array.from(document.querySelectorAll(".digit"));
     const digitPad = document.getElementById("digitPad");
 
-    const statTotal = document.getElementById("statTotal");
-    const statClears = document.getElementById("statClears");
-    const statBest = document.getElementById("statBest");
-    const statAvg = document.getElementById("statAvg");
+    const statLevel = document.getElementById("statLevel");
+    const statBestScore = document.getElementById("statBestScore");
 
     const celebrationEl = document.getElementById("celebration");
     const celebrationTextEl = document.getElementById("celebrationText");
@@ -747,25 +738,57 @@
 
     let lastGuessEnabled = false;
 
-    // ----- stats 関連 -----
+    // ===== スコア & レベル関連 =====
+
+    function calcScoreThisGame(tries) {
+      const difficulty = Math.max(0, 10 - tries);
+      const score = Math.round(100 * Math.pow(1.6, difficulty));
+      return score;
+    }
+
+    function calcLevel(totalXp) {
+      return 1 + Math.floor((totalXp || 0) / 3000);
+    }
+
+    // ===== stats 関連 =====
 
     function loadStatsLocal() {
       try {
         const raw = localStorage.getItem(STORAGE_KEY_STATS);
         if (!raw) {
-          stats = { totalGames: 0, clears: 0, bestTries: null, totalTriesOnClear: 0 };
+          stats = { 
+            totalGames: 0,
+            clears: 0,
+            bestTries: null,
+            totalTriesOnClear: 0,
+            totalXp: 0,
+            bestScore: null
+          };
           return;
         }
         const data = JSON.parse(raw);
         stats.totalGames = data.totalGames || 0;
         stats.clears = data.clears || 0;
         stats.totalTriesOnClear = data.totalTriesOnClear || 0;
-        stats.bestTries = (data.bestTries === null || typeof data.bestTries === "number")
-          ? data.bestTries
-          : null;
+        stats.bestTries =
+          data.bestTries === null || typeof data.bestTries === "number"
+            ? data.bestTries
+            : null;
+        stats.totalXp = typeof data.totalXp === "number" ? data.totalXp : 0;
+        stats.bestScore =
+          data.bestScore === null || typeof data.bestScore === "number"
+            ? data.bestScore
+            : null;
       } catch (e) {
         console.warn("戦績の読み込みに失敗:", e);
-        stats = { totalGames: 0, clears: 0, bestTries: null, totalTriesOnClear: 0 };
+        stats = { 
+          totalGames: 0,
+          clears: 0,
+          bestTries: null,
+          totalTriesOnClear: 0,
+          totalXp: 0,
+          bestScore: null
+        };
       }
     }
 
@@ -792,6 +815,12 @@
             stats.bestTries =
               s.bestTries === null || typeof s.bestTries === "number"
                 ? s.bestTries
+                : null;
+            stats.totalXp =
+              typeof s.totalXp === "number" ? s.totalXp : 0;
+            stats.bestScore =
+              s.bestScore === null || typeof s.bestScore === "number"
+                ? s.bestScore
                 : null;
           }
         } else {
@@ -823,31 +852,24 @@
     }
 
     function updateStatsView() {
-      statTotal.textContent = stats.totalGames;
-      statClears.textContent = stats.clears;
-      statBest.textContent = stats.bestTries == null ? "-" : stats.bestTries + " 手";
-      if (stats.clears === 0) {
-        statAvg.textContent = "-";
-      } else {
-        const avg = stats.totalTriesOnClear / stats.clears;
-        statAvg.textContent = avg.toFixed(1) + " 手";
-      }
+      const level = calcLevel(stats.totalXp);
+      statLevel.textContent = `Lv.${level}`;
+      statBestScore.textContent =
+        stats.bestScore == null ? "-" : `${stats.bestScore} 点`;
     }
 
-    // 既存コードとの互換用
     function loadStats() {
       loadStatsLocal();
     }
 
     function saveStats() {
       saveStatsLocal();
-      // ログインしていればクラウドにも反映
       if (currentUser) {
         saveStatsCloud();
       }
     }
 
-    // ----- 演出 / UI -----
+    // ===== 演出 / UI =====
 
     function shakeSlots() {
       slotsContainer.classList.add("shake");
@@ -997,9 +1019,15 @@
       }
     }
 
-    function showCelebration(tries) {
+    function showCelebration(tries, score, oldLevel, newLevel) {
       celebrationTextEl.textContent = "正解！";
-      celebrationSubEl.textContent = `${tries}回で当てたよ！すごい！`;
+
+      let subHtml = `${tries}回で当てたよ！<br>今回のスコア：<strong>${score}</strong> 点`;
+      if (newLevel > oldLevel) {
+        subHtml += `<br>Lv.${oldLevel} → <strong>Lv.${newLevel}</strong> にレベルアップ！`;
+      }
+      celebrationSubEl.innerHTML = subHtml;
+
       createConfettiPieces();
       createWaves();
       celebrationEl.classList.add("show");
@@ -1091,15 +1119,28 @@
         hit
       );
       if (hit === DIGITS) {
+        const prevLevel = calcLevel(stats.totalXp);
+        const scoreThisGame = calcScoreThisGame(tries);
+
         statusText.textContent = `🎉 正解！答えは ${answer} でした！（${tries}回でクリア）`;
+
+        // 旧手数系の記録も一応維持
         stats.clears += 1;
         stats.totalTriesOnClear += tries;
         if (stats.bestTries === null || tries < stats.bestTries) {
           stats.bestTries = tries;
         }
+
+        // XP & スコア更新
+        stats.totalXp = (stats.totalXp || 0) + scoreThisGame;
+        if (stats.bestScore == null || scoreThisGame > stats.bestScore) {
+          stats.bestScore = scoreThisGame;
+        }
+        const newLevel = calcLevel(stats.totalXp);
+
         saveStats();
         updateStatsView();
-        showCelebration(tries);
+        showCelebration(tries, scoreThisGame, prevLevel, newLevel);
         endGame();
       } else {
         statusText.textContent = `ヒット: ${hit}, ブロー: ${blow}（${tries}回目）`;
@@ -1427,7 +1468,6 @@
         return;
       }
 
-      // ★ 追加: 6文字未満を事前チェック
       if (password.length < 6) {
         authStatusEl.textContent = "パスワードは6文字以上にしてください。";
         return;
@@ -1443,14 +1483,7 @@
         passwordInput.value = "";
       } catch (e) {
         console.error(e);
-        // エラーコードごとに日本語で表示
-        if (e.code === "auth/email-already-in-use") {
-          authStatusEl.textContent = "そのメールアドレスはすでに使われています。";
-        } else if (e.code === "auth/weak-password") {
-          authStatusEl.textContent = "パスワードは6文字以上にしてください。";
-        } else {
-          authStatusEl.textContent = "新規登録に失敗しました：" + (e.message || e.code);
-        }
+        authStatusEl.textContent = "新規登録に失敗しました：" + (e.message || e.code);
       }
     });
 
