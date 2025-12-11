@@ -568,6 +568,129 @@
       100% { transform: scale(1); }
     }
 
+
+    /* ▼ 遊び方モーダル ▼ */
+    .howto-modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15,23,42,0.92);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 900;
+    }
+
+    .howto-modal-overlay.show {
+      display: flex;
+    }
+
+    .howto-modal {
+      width: min(480px, 92vw);
+      max-height: 80vh;
+      background: #020617;
+      border-radius: 16px;
+      border: 1px solid #4b5563;
+      padding: 14px 14px 16px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.75);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .howto-modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+
+    .howto-modal-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 1rem;
+      font-weight: 700;
+      color: #e5e7eb;
+    }
+
+    .howto-modal-icon {
+      font-size: 1.3rem;
+    }
+
+    .howto-close-btn {
+      padding: 4px 8px;
+      border-radius: 999px;
+      background: #374151;
+      color: #e5e7eb;
+      border: none;
+      font-size: 0.8rem;
+      cursor: pointer;
+    }
+
+    .howto-modal-body {
+      margin-top: 4px;
+      padding-top: 4px;
+      border-top: 1px solid #1f2937;
+      overflow-y: auto;
+      font-size: 0.85rem;
+      color: #d1d5db;
+    }
+
+    .howto-section {
+      margin-bottom: 10px;
+    }
+
+    .howto-section h3 {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.9rem;
+      margin: 4px 0;
+      color: #e5e7eb;
+    }
+
+    .howto-section-index {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 18px;
+      height: 18px;
+      border-radius: 999px;
+      background: #4b5563;
+      color: #f9fafb;
+      font-size: 0.7rem;
+      font-weight: 700;
+    }
+
+    .howto-section p {
+      margin: 2px 0 4px;
+    }
+
+    .howto-section ul {
+      padding-left: 1.1rem;
+      margin: 2px 0 2px;
+    }
+
+    .howto-section li {
+      margin-bottom: 2px;
+    }
+
+    .howto-sub {
+      margin-top: 3px;
+      padding: 4px 6px;
+      border-radius: 6px;
+      background: #020617;
+      border: 1px dashed #374151;
+      font-size: 0.78rem;
+    }
+
+    .howto-section code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      background: #020617;
+      padding: 1px 4px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+    }
+
   </style>
 </head>
 <body>
@@ -597,31 +720,13 @@
     <!-- ▲ 認証エリアここまで ▲ -->
 
     <h1>ヒット＆ブロー（3桁）</h1>
-    <p>
-      3桁の数字を当てるゲームです。<br />
-      ・数字はすべて <strong>バラバラ</strong><br />
-      ・先頭は <strong>0になりません</strong><br />
-      例：123, 947 など
-    </p>
-
-    <!-- ▼ 遊び方ボタン＆開閉ルール ▼ -->
+        <!-- ▼ 遊び方ボタン＆モーダル ▼ -->
     <div class="howto-bar">
       <div class="howto-label">ヒット＆ブローが初めての人へ</div>
       <button id="howtoBtn" class="secondary howto-btn">遊び方</button>
     </div>
-    <div id="howtoPanel" class="howto-panel">
-      <div>
-        <strong>一言でいうと</strong><br>
-        3桁の秘密の数字を、ヒントの「ヒット」と「ブロー」を手がかりに当てるゲームです。
-      </div>
-      <div class="howto-example">
-        <strong>例</strong><br>
-        正解：<strong>427</strong><br>
-        入力：<strong>472</strong> → 0ヒット / 2ブロー<br>
-        入力：<strong>407</strong> → 1ヒット / 1ブロー
-      </div>
-    </div>
     <!-- ▲ 遊び方ここまで ▲ -->
+
 
     <div class="status" id="statusText">
       数字を選んでみてね。
@@ -656,14 +761,6 @@
       <button id="giveupBtn" class="secondary" disabled>ギブアップ</button>
     </div>
 
-    <div class="small">
-      数字は下のチップをタップするか、<br>
-      長押ししてドラッグしてスロットに置いてね。<br>
-      スロットも長押しドラッグで別のスロットに動かしたり、<br>
-      下の数字エリアにドラッグして消せるよ。<br>
-      スロットをタップするとその桁が消えるよ。
-    </div>
-
     <div class="log" id="log"></div>
 
     <div class="stats" id="statsBox">
@@ -683,6 +780,52 @@
         <div class="stats-value" id="statBestScore">-</div>
       </div>
     </div>
+
+    <!-- ▼ 遊び方モーダル ▼ -->
+    <div id="howtoModal" class="howto-modal-overlay">
+      <div class="howto-modal">
+        <div class="howto-modal-header">
+          <div class="howto-modal-title">
+            <span class="howto-modal-icon">🎮</span>
+            <span>遊び方ガイド</span>
+          </div>
+          <button id="howtoCloseBtn" class="howto-close-btn">✕</button>
+        </div>
+        <div class="howto-modal-body">
+          <section class="howto-section">
+            <h3><span class="howto-section-index">1</span>ゲームの目的</h3>
+            <p>3桁の「秘密の数字」を当てるゲームです。数字はすべてバラバラで、先頭は0になりません。</p>
+            <div class="howto-sub">
+              例：<code>123</code>、<code>947</code> はOK ／ <code>011</code> や <code>900</code> はNG
+            </div>
+          </section>
+
+          <section class="howto-section">
+            <h3><span class="howto-section-index">2</span>ヒットとブロー</h3>
+            <p>
+              あなたが入力した3桁と答えを比べて、「場所と数字が両方一致」した数が
+              <strong>ヒット</strong>、「数字だけ一致（場所は違う）」が <strong>ブロー</strong> です。
+            </p>
+            <div class="howto-sub">
+              正解：<code>427</code><br>
+              入力：<code>472</code> → 0ヒット / 2ブロー<br>
+              入力：<code>407</code> → 1ヒット / 1ブロー
+            </div>
+          </section>
+
+          <section class="howto-section">
+            <h3><span class="howto-section-index">3</span>操作方法（スマホ向け）</h3>
+            <ul>
+              <li>下の数字チップを<strong>タップ</strong>すると、空いているスロットに入ります。</li>
+              <li>スロットを<strong>タップ</strong>すると、その桁を消せます。</li>
+              <li>長押ししてドラッグすると、別のスロットへ移動したり、数字エリアへ戻して消すこともできます。</li>
+            </ul>
+          </section>
+        </div>        </div>
+      </div>
+    </div>
+    <!-- ▲ 遊び方モーダルここまで ▲ -->
+
   </div>
 
   <div id="celebration" class="celebration">
@@ -769,7 +912,8 @@
     const celebrationSubEl = document.getElementById("celebrationSub");
 
     const howtoBtn = document.getElementById("howtoBtn");
-    const howtoPanel = document.getElementById("howtoPanel");
+    const howtoModal = document.getElementById("howtoModal");
+    const howtoCloseBtn = document.getElementById("howtoCloseBtn");
 
     // 認証UI
     const authStatusEl = document.getElementById("authStatus");
@@ -1571,11 +1715,22 @@
       updateStatsView();
     });
 
-    // 遊び方の開閉
-    if (howtoBtn && howtoPanel) {
+    // 遊び方モーダル
+    if (howtoBtn && howtoModal) {
       howtoBtn.addEventListener("click", () => {
-        const open = howtoPanel.classList.toggle("open");
-        howtoBtn.textContent = open ? "遊び方を閉じる" : "遊び方";
+        howtoModal.classList.add("show");
+      });
+    }
+    if (howtoModal) {
+      howtoModal.addEventListener("click", (e) => {
+        if (e.target === howtoModal) {
+          howtoModal.classList.remove("show");
+        }
+      });
+    }
+    if (howtoCloseBtn && howtoModal) {
+      howtoCloseBtn.addEventListener("click", () => {
+        howtoModal.classList.remove("show");
       });
     }
 
