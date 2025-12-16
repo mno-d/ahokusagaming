@@ -1,3 +1,5 @@
+'use client';
+
 import { useState, useEffect } from 'react';
 import { useGame } from '@/contexts/GameContext';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -16,6 +18,7 @@ export default function GameScreenDragDrop() {
   const [currentInput, setCurrentInput] = useState<string[]>(Array(DIGITS).fill(''));
   const [draggedNum, setDraggedNum] = useState<string | null>(null);
   const [draggedFromSlot, setDraggedFromSlot] = useState<number | null>(null);
+  const [dragOverTrash, setDragOverTrash] = useState(false);
 
   // Reset input when stage changes
   useEffect(() => {
@@ -52,21 +55,30 @@ export default function GameScreenDragDrop() {
 
     const newInput = [...currentInput];
     
-    // スロットから移動した場合、元のスロットをクリア
+    // スロット間での入れ替え
     if (draggedFromSlot !== null && draggedFromSlot !== slotIndex) {
-      newInput[draggedFromSlot] = '';
+      // 入れ替え処理
+      const temp = newInput[slotIndex];
+      newInput[slotIndex] = draggedNum;
+      newInput[draggedFromSlot] = temp;
+    } else if (draggedFromSlot === null) {
+      // パッドからのドロップ
+      newInput[slotIndex] = draggedNum;
+    } else {
+      // 同じスロットへのドロップ（何もしない）
+      setDraggedNum(null);
+      setDraggedFromSlot(null);
+      return;
     }
     
-    // 新しいスロットに配置
-    newInput[slotIndex] = draggedNum;
     setCurrentInput(newInput);
     setDraggedNum(null);
     setDraggedFromSlot(null);
     playSound('click');
   };
 
-  // パッドへドロップ（数字を戻す）
-  const handlePadDrop = () => {
+  // ゴミ箱へドロップ（数字を捨てる）
+  const handleTrashDrop = () => {
     if (draggedFromSlot !== null) {
       const newInput = [...currentInput];
       newInput[draggedFromSlot] = '';
@@ -75,6 +87,17 @@ export default function GameScreenDragDrop() {
     }
     setDraggedNum(null);
     setDraggedFromSlot(null);
+    setDragOverTrash(false);
+  };
+
+  // スロットをタップして数字を消す
+  const handleSlotTap = (slotIndex: number) => {
+    if (currentInput[slotIndex] !== '' && !stageState.isClear && !stageState.isGameOver) {
+      const newInput = [...currentInput];
+      newInput[slotIndex] = '';
+      setCurrentInput(newInput);
+      playSound('click');
+    }
   };
 
   const handleSubmit = () => {
@@ -126,14 +149,17 @@ export default function GameScreenDragDrop() {
               onDragStart={() => handleSlotDragStart(idx)}
               onDragOver={(e) => e.preventDefault()}
               onDrop={() => handleSlotDrop(idx)}
+              onClick={() => handleSlotTap(idx)}
               className={cn(
-                "w-16 h-20 md:w-20 md:h-24 border-2 rounded-xl flex items-center justify-center text-4xl font-[family-name:var(--font-display)] transition-all duration-200 cursor-move backdrop-blur-md",
+                "w-16 h-20 md:w-20 md:h-24 border-2 rounded-xl flex items-center justify-center text-4xl font-[family-name:var(--font-display)] transition-all duration-200 cursor-pointer backdrop-blur-md",
                 draggedNum && draggedFromSlot !== idx
                   ? "border-accent/50 bg-accent/5"
                   : "border-primary/30 bg-card/50 hover:border-primary/60",
                 num !== '' ? "text-foreground" : "text-muted",
-                num !== '' && draggedNum === num ? "opacity-50" : ""
+                num !== '' && draggedNum === num ? "opacity-50" : "",
+                num !== '' ? "cursor-move" : "cursor-pointer"
               )}
+              title={num !== '' ? t('clickToRemove') || 'Click to remove' : ''}
             >
               {num}
             </div>
@@ -148,7 +174,6 @@ export default function GameScreenDragDrop() {
               draggable
               onDragStart={() => handleNumDragStart(num)}
               onDragOver={(e) => e.preventDefault()}
-              onDrop={handlePadDrop}
               className={cn(
                 "h-14 flex items-center justify-center text-xl font-[family-name:var(--font-display)] border-2 border-primary/40 rounded-lg transition-all cursor-move select-none",
                 currentInput.includes(num.toString())
@@ -171,6 +196,29 @@ export default function GameScreenDragDrop() {
               {num}
             </div>
           ))}
+        </div>
+
+        {/* Trash Area */}
+        <div
+          onDragOver={(e) => {
+            e.preventDefault();
+            if (draggedFromSlot !== null) {
+              setDragOverTrash(true);
+            }
+          }}
+          onDragLeave={() => setDragOverTrash(false)}
+          onDrop={handleTrashDrop}
+          className={cn(
+            "mx-auto w-full max-w-md h-16 border-2 border-dashed rounded-lg flex items-center justify-center transition-all duration-200",
+            dragOverTrash
+              ? "border-destructive bg-destructive/20 shadow-[0_0_15px_rgba(255,0,0,0.3)]"
+              : "border-muted-foreground/30 bg-muted/10"
+          )}
+        >
+          <div className="text-center">
+            <div className="text-2xl">🗑️</div>
+            <div className="text-xs text-muted-foreground uppercase tracking-wider">{t('dragHereToRemove') || 'Drag here to remove'}</div>
+          </div>
         </div>
 
         {/* Action Buttons */}
